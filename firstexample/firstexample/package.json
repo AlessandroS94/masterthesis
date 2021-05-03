@@ -10,7 +10,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:firstexample.helloWorld"
+    "onCommand:firstexample.helloWorld",
+    "onCommand:firstexample.dispCmd"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -18,6 +19,16 @@
       {
         "command": "firstexample.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "firstexample.dispCmd",
+        "title": "Wow"
+      }
+    ],
+    "keybindings":[
+      {
+        "command": "firstexample.dispCmd",
+        "key": "ctrl+2"
       }
     ]
   },

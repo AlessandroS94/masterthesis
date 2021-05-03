@@ -75,3 +75,4 @@ Ensure that you've read through the extensions guidelines and follow the best pr
 2. cd nameproject
 3. npm install 
 4. run --> debuging start 
+5. Go -> go to line/column delete : and paste ">Hello World"
