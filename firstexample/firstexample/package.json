@@ -11,7 +11,8 @@
   ],
   "activationEvents": [
     "onCommand:firstexample.helloWorld",
-    "onCommand:firstexample.dispCmd"
+    "onCommand:firstexample.dispCmd",
+    "onCommand:firstexample.infoText"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -23,6 +24,16 @@
       {
         "command": "firstexample.dispCmd",
         "title": "Wow"
+      },
+      {
+        "command": "firstexample.infoText",
+        "title": "infoText"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "typescript",
+        "path": "./snippets/typescript.json"
       }
     ],
     "keybindings":[
