@@ -3,10 +3,8 @@
 import * as vscode from 'vscode';
 import { OpenDialogOptions, Uri, window } from "vscode";
 import * as fs from "fs-extra";
-import { Progress } from "vscode";
-import { KeyObject } from 'crypto';
 import axios from 'axios';
-import { Settings } from "./Settings";
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
