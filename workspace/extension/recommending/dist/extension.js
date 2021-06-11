@@ -18,14 +18,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deactivate = exports.activate = void 0;
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
+// Import the library for the extension
 const vscode = __webpack_require__(1);
 const axios_1 = __webpack_require__(2);
-var pomParser = __webpack_require__(93);
+var pomParser = __webpack_require__(49);
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
     return __awaiter(this, void 0, void 0, function* () {
-        // Use the console to output diagnostic information (console.log) and errors (console.error)
         // This line of code will only be executed once when your extension is activated
         //Start the extension
         console.log('"Recommending" is now active!');
@@ -37,9 +37,11 @@ function activate(context) {
             // Display a message box to the user
             vscode.window.showInformationMessage('Hello World from recommending!');
         });
+        // This command activate the raccomand system for more pom
         let pomGetter = vscode.commands.registerCommand('Getting.pom', () => {
             getPom(context);
         });
+        //Subscribe the command
         context.subscriptions.push(disposable);
         context.subscriptions.push(pomGetter);
     });
@@ -48,16 +50,16 @@ exports.activate = activate;
 // this method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;
+// This function find the pom on the VSCode Workspace
+// and parse the pom 
 function getPom(context) {
-    vscode.workspace.findFiles('pom.xml').then(files => {
+    vscode.workspace.findFiles('**/pom.xml').then(files => {
+        console.log("number of pom: " + files.length);
         files.forEach(file => {
             //open file 
-            var pomParser = __webpack_require__(93);
             // The required options, including the filePath.
             // Other parsing options from https://github.com/Leonidas-from-XIV/node-xml2js#options
-            var opts = {
-                filePath: file.fsPath // The path to a pom file
-            };
+            var opts = { filePath: file.fsPath }; // The path to a pom file
             // Parse the pom based on a path
             pomParser.parse(opts, function (err, pomResponse) {
                 if (err) {
@@ -67,17 +69,19 @@ function getPom(context) {
                 // The original pom xml that was loaded is provided.
                 //console.log("XML: " + pomResponse.pomXml);
                 // The parsed pom pbject.
-                var result = JSON.stringify(pomResponse.pomObject.project.dependencies.dependency);
+                //var result = JSON.stringify(pomResponse.pomObject.project.dependencies.dependency);
                 var response = [];
                 pomResponse.pomObject.project.dependencies.dependency.forEach((key) => {
                     const library = (key.groupid);
                     response.push(library);
                 });
+                //View the pom parsed
                 console.log(JSON.stringify({ lib: response }));
+                // 
                 axios_1.default.post("http://192.168.1.103:5000/recommend", { lib: response })
                     .then(function (response) {
                     // handle success
-                    console.log(response);
+                    console.log(response.data.lib);
                 })
                     .catch(function (error) {
                     // handle error
@@ -86,7 +90,6 @@ function getPom(context) {
                     .then(function () {
                     // always executed
                 });
-                //console.log("OBJECT: " + result);
             });
         });
     });
@@ -117,7 +120,7 @@ var utils = __webpack_require__(4);
 var bind = __webpack_require__(5);
 var Axios = __webpack_require__(6);
 var mergeConfig = __webpack_require__(44);
-var defaults = __webpack_require__(15);
+var defaults = __webpack_require__(12);
 
 /**
  * Create an instance of Axios
@@ -152,7 +155,7 @@ axios.create = function create(instanceConfig) {
 // Expose Cancel & CancelToken
 axios.Cancel = __webpack_require__(45);
 axios.CancelToken = __webpack_require__(46);
-axios.isCancel = __webpack_require__(12);
+axios.isCancel = __webpack_require__(11);
 
 // Expose all/spread
 axios.all = function all(promises) {
@@ -553,7 +556,7 @@ module.exports = function bind(fn, thisArg) {
 
 
 var utils = __webpack_require__(4);
-var buildURL = __webpack_require__(49);
+var buildURL = __webpack_require__(7);
 var InterceptorManager = __webpack_require__(8);
 var dispatchRequest = __webpack_require__(9);
 var mergeConfig = __webpack_require__(44);
@@ -649,10 +652,80 @@ module.exports = Axios;
 
 /***/ }),
 /* 7 */
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
-module.exports = require("fs");;
+
+
+var utils = __webpack_require__(4);
+
+function encode(val) {
+  return encodeURIComponent(val).
+    replace(/%3A/gi, ':').
+    replace(/%24/g, '$').
+    replace(/%2C/gi, ',').
+    replace(/%20/g, '+').
+    replace(/%5B/gi, '[').
+    replace(/%5D/gi, ']');
+}
+
+/**
+ * Build a URL by appending params to the end
+ *
+ * @param {string} url The base of the url (e.g., http://www.google.com)
+ * @param {object} [params] The params to be appended
+ * @returns {string} The formatted url
+ */
+module.exports = function buildURL(url, params, paramsSerializer) {
+  /*eslint no-param-reassign:0*/
+  if (!params) {
+    return url;
+  }
+
+  var serializedParams;
+  if (paramsSerializer) {
+    serializedParams = paramsSerializer(params);
+  } else if (utils.isURLSearchParams(params)) {
+    serializedParams = params.toString();
+  } else {
+    var parts = [];
+
+    utils.forEach(params, function serialize(val, key) {
+      if (val === null || typeof val === 'undefined') {
+        return;
+      }
+
+      if (utils.isArray(val)) {
+        key = key + '[]';
+      } else {
+        val = [val];
+      }
+
+      utils.forEach(val, function parseValue(v) {
+        if (utils.isDate(v)) {
+          v = v.toISOString();
+        } else if (utils.isObject(v)) {
+          v = JSON.stringify(v);
+        }
+        parts.push(encode(key) + '=' + encode(v));
+      });
+    });
+
+    serializedParams = parts.join('&');
+  }
+
+  if (serializedParams) {
+    var hashmarkIndex = url.indexOf('#');
+    if (hashmarkIndex !== -1) {
+      url = url.slice(0, hashmarkIndex);
+    }
+
+    url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams;
+  }
+
+  return url;
+};
+
 
 /***/ }),
 /* 8 */
@@ -722,8 +795,8 @@ module.exports = InterceptorManager;
 
 var utils = __webpack_require__(4);
 var transformData = __webpack_require__(10);
-var isCancel = __webpack_require__(12);
-var defaults = __webpack_require__(15);
+var isCancel = __webpack_require__(11);
+var defaults = __webpack_require__(12);
 
 /**
  * Throws a `Cancel` if cancellation has been requested.
@@ -831,13 +904,6 @@ module.exports = function transformData(data, headers, fns) {
 /***/ ((module) => {
 
 "use strict";
-module.exports = require("stream");;
-
-/***/ }),
-/* 12 */
-/***/ ((module) => {
-
-"use strict";
 
 
 module.exports = function isCancel(value) {
@@ -846,28 +912,14 @@ module.exports = function isCancel(value) {
 
 
 /***/ }),
-/* 13 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("util");;
-
-/***/ }),
-/* 14 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("assert");;
-
-/***/ }),
-/* 15 */
+/* 12 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
 var utils = __webpack_require__(4);
-var normalizeHeaderName = __webpack_require__(16);
+var normalizeHeaderName = __webpack_require__(13);
 
 var DEFAULT_CONTENT_TYPE = {
   'Content-Type': 'application/x-www-form-urlencoded'
@@ -883,10 +935,10 @@ function getDefaultAdapter() {
   var adapter;
   if (typeof XMLHttpRequest !== 'undefined') {
     // For browsers use XHR adapter
-    adapter = __webpack_require__(17);
+    adapter = __webpack_require__(14);
   } else if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
     // For node use HTTP adapter
-    adapter = __webpack_require__(28);
+    adapter = __webpack_require__(24);
   }
   return adapter;
 }
@@ -965,7 +1017,7 @@ module.exports = defaults;
 
 
 /***/ }),
-/* 16 */
+/* 13 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -984,20 +1036,20 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 
 
 /***/ }),
-/* 17 */
+/* 14 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
 var utils = __webpack_require__(4);
-var settle = __webpack_require__(18);
-var cookies = __webpack_require__(22);
-var buildURL = __webpack_require__(49);
-var buildFullPath = __webpack_require__(23);
-var parseHeaders = __webpack_require__(26);
-var isURLSameOrigin = __webpack_require__(27);
-var createError = __webpack_require__(19);
+var settle = __webpack_require__(15);
+var cookies = __webpack_require__(18);
+var buildURL = __webpack_require__(7);
+var buildFullPath = __webpack_require__(19);
+var parseHeaders = __webpack_require__(22);
+var isURLSameOrigin = __webpack_require__(23);
+var createError = __webpack_require__(16);
 
 module.exports = function xhrAdapter(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -1170,13 +1222,13 @@ module.exports = function xhrAdapter(config) {
 
 
 /***/ }),
-/* 18 */
+/* 15 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var createError = __webpack_require__(19);
+var createError = __webpack_require__(16);
 
 /**
  * Resolve or reject a Promise based on response status.
@@ -1202,13 +1254,13 @@ module.exports = function settle(resolve, reject, response) {
 
 
 /***/ }),
-/* 19 */
+/* 16 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var enhanceError = __webpack_require__(21);
+var enhanceError = __webpack_require__(17);
 
 /**
  * Create an Error with the specified message, config, error code, request and response.
@@ -1227,14 +1279,7 @@ module.exports = function createError(message, config, code, request, response) 
 
 
 /***/ }),
-/* 20 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("os");;
-
-/***/ }),
-/* 21 */
+/* 17 */
 /***/ ((module) => {
 
 "use strict";
@@ -1283,7 +1328,7 @@ module.exports = function enhanceError(error, config, code, request, response) {
 
 
 /***/ }),
-/* 22 */
+/* 18 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -1343,14 +1388,14 @@ module.exports = (
 
 
 /***/ }),
-/* 23 */
+/* 19 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var isAbsoluteURL = __webpack_require__(24);
-var combineURLs = __webpack_require__(25);
+var isAbsoluteURL = __webpack_require__(20);
+var combineURLs = __webpack_require__(21);
 
 /**
  * Creates a new URL by combining the baseURL with the requestedURL,
@@ -1370,7 +1415,7 @@ module.exports = function buildFullPath(baseURL, requestedURL) {
 
 
 /***/ }),
-/* 24 */
+/* 20 */
 /***/ ((module) => {
 
 "use strict";
@@ -1391,7 +1436,7 @@ module.exports = function isAbsoluteURL(url) {
 
 
 /***/ }),
-/* 25 */
+/* 21 */
 /***/ ((module) => {
 
 "use strict";
@@ -1412,7 +1457,7 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 
 
 /***/ }),
-/* 26 */
+/* 22 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -1472,7 +1517,7 @@ module.exports = function parseHeaders(headers) {
 
 
 /***/ }),
-/* 27 */
+/* 23 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -1547,25 +1592,25 @@ module.exports = (
 
 
 /***/ }),
-/* 28 */
+/* 24 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
 var utils = __webpack_require__(4);
-var settle = __webpack_require__(18);
-var buildFullPath = __webpack_require__(23);
-var buildURL = __webpack_require__(49);
-var http = __webpack_require__(29);
-var https = __webpack_require__(30);
-var httpFollow = __webpack_require__(31).http;
-var httpsFollow = __webpack_require__(31).https;
-var url = __webpack_require__(32);
+var settle = __webpack_require__(15);
+var buildFullPath = __webpack_require__(19);
+var buildURL = __webpack_require__(7);
+var http = __webpack_require__(25);
+var https = __webpack_require__(26);
+var httpFollow = __webpack_require__(27).http;
+var httpsFollow = __webpack_require__(27).https;
+var url = __webpack_require__(28);
 var zlib = __webpack_require__(42);
 var pkg = __webpack_require__(43);
-var createError = __webpack_require__(19);
-var enhanceError = __webpack_require__(21);
+var createError = __webpack_require__(16);
+var enhanceError = __webpack_require__(17);
 
 var isHttps = /https:?/;
 
@@ -1857,30 +1902,30 @@ module.exports = function httpAdapter(config) {
 
 
 /***/ }),
-/* 29 */
+/* 25 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("http");;
 
 /***/ }),
-/* 30 */
+/* 26 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("https");;
 
 /***/ }),
-/* 31 */
+/* 27 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var url = __webpack_require__(32);
+var url = __webpack_require__(28);
 var URL = url.URL;
-var http = __webpack_require__(29);
-var https = __webpack_require__(30);
-var Writable = __webpack_require__(11).Writable;
-var assert = __webpack_require__(14);
-var debug = __webpack_require__(33);
+var http = __webpack_require__(25);
+var https = __webpack_require__(26);
+var Writable = __webpack_require__(29).Writable;
+var assert = __webpack_require__(30);
+var debug = __webpack_require__(31);
 
 // Create handlers that pass events from native requests
 var events = ["abort", "aborted", "connect", "error", "socket", "timeout"];
@@ -2408,14 +2453,28 @@ module.exports.wrap = wrap;
 
 
 /***/ }),
-/* 32 */
+/* 28 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("url");;
 
 /***/ }),
-/* 33 */
+/* 29 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("stream");;
+
+/***/ }),
+/* 30 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("assert");;
+
+/***/ }),
+/* 31 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var debug;
@@ -2424,7 +2483,7 @@ module.exports = function () {
   if (!debug) {
     try {
       /* eslint global-require: off */
-      debug = __webpack_require__(34)("follow-redirects");
+      debug = __webpack_require__(32)("follow-redirects");
     }
     catch (error) {
       debug = function () { /* */ };
@@ -2435,7 +2494,7 @@ module.exports = function () {
 
 
 /***/ }),
-/* 34 */
+/* 32 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /**
@@ -2444,14 +2503,14 @@ module.exports = function () {
  */
 
 if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
-	module.exports = __webpack_require__(35);
+	module.exports = __webpack_require__(33);
 } else {
-	module.exports = __webpack_require__(38);
+	module.exports = __webpack_require__(36);
 }
 
 
 /***/ }),
-/* 35 */
+/* 33 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /* eslint-env browser */
@@ -2708,7 +2767,7 @@ function localstorage() {
 	}
 }
 
-module.exports = __webpack_require__(36)(exports);
+module.exports = __webpack_require__(34)(exports);
 
 const {formatters} = module.exports;
 
@@ -2726,7 +2785,7 @@ formatters.j = function (v) {
 
 
 /***/ }),
-/* 36 */
+/* 34 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 
@@ -2742,7 +2801,7 @@ function setup(env) {
 	createDebug.disable = disable;
 	createDebug.enable = enable;
 	createDebug.enabled = enabled;
-	createDebug.humanize = __webpack_require__(37);
+	createDebug.humanize = __webpack_require__(35);
 	createDebug.destroy = destroy;
 
 	Object.keys(env).forEach(key => {
@@ -2993,7 +3052,7 @@ module.exports = setup;
 
 
 /***/ }),
-/* 37 */
+/* 35 */
 /***/ ((module) => {
 
 /**
@@ -3161,15 +3220,15 @@ function plural(ms, msAbs, n, name) {
 
 
 /***/ }),
-/* 38 */
+/* 36 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /**
  * Module dependencies.
  */
 
-const tty = __webpack_require__(39);
-const util = __webpack_require__(13);
+const tty = __webpack_require__(37);
+const util = __webpack_require__(38);
 
 /**
  * This is the Node.js implementation of `debug()`.
@@ -3195,7 +3254,7 @@ exports.colors = [6, 2, 3, 4, 5, 1];
 try {
 	// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
 	// eslint-disable-next-line import/no-extraneous-dependencies
-	const supportsColor = __webpack_require__(40);
+	const supportsColor = __webpack_require__(39);
 
 	if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
 		exports.colors = [
@@ -3403,7 +3462,7 @@ function init(debug) {
 	}
 }
 
-module.exports = __webpack_require__(36)(exports);
+module.exports = __webpack_require__(34)(exports);
 
 const {formatters} = module.exports;
 
@@ -3430,20 +3489,27 @@ formatters.O = function (v) {
 
 
 /***/ }),
-/* 39 */
+/* 37 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("tty");;
 
 /***/ }),
-/* 40 */
+/* 38 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("util");;
+
+/***/ }),
+/* 39 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
-const os = __webpack_require__(20);
-const tty = __webpack_require__(39);
+const os = __webpack_require__(40);
+const tty = __webpack_require__(37);
 const hasFlag = __webpack_require__(41);
 
 const {env} = process;
@@ -3577,6 +3643,13 @@ module.exports = {
 	stderr: translateLevel(supportsColor(true, tty.isatty(2)))
 };
 
+
+/***/ }),
+/* 40 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("os");;
 
 /***/ }),
 /* 41 */
@@ -3848,80 +3921,124 @@ module.exports = function isAxiosError(payload) {
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
+/** @module Node Pom Parser */
 
 
-var utils = __webpack_require__(4);
 
-function encode(val) {
-  return encodeURIComponent(val).
-    replace(/%3A/gi, ':').
-    replace(/%24/g, '$').
-    replace(/%2C/gi, ',').
-    replace(/%20/g, '+').
-    replace(/%5B/gi, '[').
-    replace(/%5D/gi, ']');
+const fs = __webpack_require__(50);
+var xml2js = __webpack_require__(51);
+var traverse = __webpack_require__(94);
+
+// xmljs options https://github.com/Leonidas-from-XIV/node-xml2js#options
+var XML2JS_OPTS = {
+  trim: true,
+  normalizeTags: true,
+  normalize: true,
+  mergeAttrs: true
+};
+
+/**
+ * Parses xml into javascript object by using a file path or an xml content.
+ * @param {object} opt Is the option with the filePath or xmlContent and the optional format.
+ * @return {object} The pom object along with the timers.
+ */
+module.exports.parse = function(opt, callback) {
+  if (!opt) {
+    throw new Error("You must provide options: opt.filePath and any other option of " +
+      "https://github.com/Leonidas-from-XIV/node-xml2js#options");
+  }
+  if (!opt.xmlContent && !opt.filePath) {
+    throw new Error("You must provide the opt.filePath or the opt.xmlContent");
+  }
+
+
+  // If the xml content is was not provided by the api client.
+  // https://github.com/petkaantonov/bluebird/blob/master/API.md#error-rejectedhandler----promise
+  if (!opt.xmlContent) {
+    readFileAsync(opt.filePath, "utf8").then(function(xmlContent) {
+      return xmlContent;
+
+    }).then(_parseWithXml2js).then(function(result) {
+      callback(null, result);
+
+    }).catch(function(e) {
+      callback(e, null);
+    });
+
+  } else {
+    // parse the xml provided by the api client.
+    _parseWithXml2js(opt.xmlContent).then(function(result) {
+      delete result.xmlContent;
+      callback(null, result);
+
+    }).catch(function (e) {
+      callback(e);
+    });
+  }
+
+};
+
+/**
+ * Parses the given xml content.
+ * @param xmlContent {string} Is the xml content in string using utf-8 format.
+ * @param loadedXml {boolean} Whether the xml was loaded from the file-system.
+ * @param callback {function} The callback function using Javascript PCS.
+ */
+function _parseWithXml2js(xmlContent) {
+  return new Promise(function(resolve, reject) {
+    // parse the pom, erasing all
+    xml2js.parseString(xmlContent, XML2JS_OPTS, function(err, pomObject) {
+      if (err) {
+        // Reject with the error
+        reject(err);
+      }
+
+      // Replace the arrays with single elements with strings
+      removeSingleArrays(pomObject);
+
+      // Response to the call
+      resolve({
+        pomXml: xmlContent, // Only add the pomXml when loaded from the file-system.
+        pomObject: pomObject // Always add the object
+      });
+    });
+  });
 }
 
 /**
- * Build a URL by appending params to the end
- *
- * @param {string} url The base of the url (e.g., http://www.google.com)
- * @param {object} [params] The params to be appended
- * @returns {string} The formatted url
+ * Removes all the arrays with single elements with a string value.
+ * @param {object} o is the object to be traversed.
  */
-module.exports = function buildURL(url, params, paramsSerializer) {
-  /*eslint no-param-reassign:0*/
-  if (!params) {
-    return url;
-  }
-
-  var serializedParams;
-  if (paramsSerializer) {
-    serializedParams = paramsSerializer(params);
-  } else if (utils.isURLSearchParams(params)) {
-    serializedParams = params.toString();
-  } else {
-    var parts = [];
-
-    utils.forEach(params, function serialize(val, key) {
-      if (val === null || typeof val === 'undefined') {
-        return;
-      }
-
-      if (utils.isArray(val)) {
-        key = key + '[]';
-      } else {
-        val = [val];
-      }
-
-      utils.forEach(val, function parseValue(v) {
-        if (utils.isDate(v)) {
-          v = v.toISOString();
-        } else if (utils.isObject(v)) {
-          v = JSON.stringify(v);
-        }
-        parts.push(encode(key) + '=' + encode(v));
-      });
-    });
-
-    serializedParams = parts.join('&');
-  }
-
-  if (serializedParams) {
-    var hashmarkIndex = url.indexOf('#');
-    if (hashmarkIndex !== -1) {
-      url = url.slice(0, hashmarkIndex);
+function removeSingleArrays(obj) {
+  // Traverse all the elements of the object
+  traverse(obj).forEach(function traversing(value) {
+    // As the XML parser returns single fields as arrays.
+    if (value instanceof Array && value.length === 1) {
+      this.update(value[0]);
     }
+  });
+}
 
-    url += (url.indexOf('?') === -1 ? '?' : '&') + serializedParams;
-  }
-
-  return url;
-};
+function readFileAsync(path, encoding) {
+  return new Promise((resolve, reject) => fs.readFile(path, {encoding}, (err, data) => {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(data);
+    }
+  }));
+}
 
 
 /***/ }),
 /* 50 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("fs");;
+
+/***/ }),
+/* 51 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -3931,13 +4048,13 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  defaults = __webpack_require__(51);
+  defaults = __webpack_require__(52);
 
-  builder = __webpack_require__(52);
+  builder = __webpack_require__(53);
 
-  parser = __webpack_require__(86);
+  parser = __webpack_require__(87);
 
-  processors = __webpack_require__(91);
+  processors = __webpack_require__(92);
 
   exports.defaults = defaults.defaults;
 
@@ -3966,7 +4083,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(__unused_webpack_module, exports) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4044,7 +4161,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 52 */
+/* 53 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4053,9 +4170,9 @@ module.exports = function buildURL(url, params, paramsSerializer) {
   var builder, defaults, escapeCDATA, requiresCDATA, wrapCDATA,
     hasProp = {}.hasOwnProperty;
 
-  builder = __webpack_require__(53);
+  builder = __webpack_require__(54);
 
-  defaults = __webpack_require__(51).defaults;
+  defaults = __webpack_require__(52).defaults;
 
   requiresCDATA = function(entry) {
     return typeof entry === "string" && (entry.indexOf('&') >= 0 || entry.indexOf('>') >= 0 || entry.indexOf('<') >= 0);
@@ -4177,28 +4294,28 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 53 */
+/* 54 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
 (function() {
   var NodeType, WriterState, XMLDOMImplementation, XMLDocument, XMLDocumentCB, XMLStreamWriter, XMLStringWriter, assign, isFunction, ref;
 
-  ref = __webpack_require__(54), assign = ref.assign, isFunction = ref.isFunction;
+  ref = __webpack_require__(55), assign = ref.assign, isFunction = ref.isFunction;
 
-  XMLDOMImplementation = __webpack_require__(55);
+  XMLDOMImplementation = __webpack_require__(56);
 
-  XMLDocument = __webpack_require__(56);
+  XMLDocument = __webpack_require__(57);
 
-  XMLDocumentCB = __webpack_require__(84);
+  XMLDocumentCB = __webpack_require__(85);
 
-  XMLStringWriter = __webpack_require__(81);
+  XMLStringWriter = __webpack_require__(82);
 
-  XMLStreamWriter = __webpack_require__(85);
+  XMLStreamWriter = __webpack_require__(86);
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  WriterState = __webpack_require__(83);
+  WriterState = __webpack_require__(84);
 
   module.exports.create = function(name, xmldec, doctype, options) {
     var doc, root;
@@ -4248,7 +4365,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 54 */
+/* 55 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4337,7 +4454,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 55 */
+/* 56 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4375,7 +4492,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 56 */
+/* 57 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4384,19 +4501,19 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isPlainObject = __webpack_require__(54).isPlainObject;
+  isPlainObject = __webpack_require__(55).isPlainObject;
 
-  XMLDOMImplementation = __webpack_require__(55);
+  XMLDOMImplementation = __webpack_require__(56);
 
-  XMLDOMConfiguration = __webpack_require__(57);
+  XMLDOMConfiguration = __webpack_require__(58);
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLStringifier = __webpack_require__(80);
+  XMLStringifier = __webpack_require__(81);
 
-  XMLStringWriter = __webpack_require__(81);
+  XMLStringWriter = __webpack_require__(82);
 
   module.exports = XMLDocument = (function(superClass) {
     extend(XMLDocument, superClass);
@@ -4623,16 +4740,16 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 57 */
+/* 58 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
 (function() {
   var XMLDOMConfiguration, XMLDOMErrorHandler, XMLDOMStringList;
 
-  XMLDOMErrorHandler = __webpack_require__(58);
+  XMLDOMErrorHandler = __webpack_require__(59);
 
-  XMLDOMStringList = __webpack_require__(59);
+  XMLDOMStringList = __webpack_require__(60);
 
   module.exports = XMLDOMConfiguration = (function() {
     function XMLDOMConfiguration() {
@@ -4693,7 +4810,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 58 */
+/* 59 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4715,7 +4832,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 59 */
+/* 60 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4749,7 +4866,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 60 */
+/* 61 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4757,7 +4874,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
   var DocumentPosition, NodeType, XMLCData, XMLComment, XMLDeclaration, XMLDocType, XMLDummy, XMLElement, XMLNamedNodeMap, XMLNode, XMLNodeList, XMLProcessingInstruction, XMLRaw, XMLText, getValue, isEmpty, isFunction, isObject, ref1,
     hasProp = {}.hasOwnProperty;
 
-  ref1 = __webpack_require__(54), isObject = ref1.isObject, isFunction = ref1.isFunction, isEmpty = ref1.isEmpty, getValue = ref1.getValue;
+  ref1 = __webpack_require__(55), isObject = ref1.isObject, isFunction = ref1.isFunction, isEmpty = ref1.isEmpty, getValue = ref1.getValue;
 
   XMLElement = null;
 
@@ -4796,19 +4913,19 @@ module.exports = function buildURL(url, params, paramsSerializer) {
       this.children = [];
       this.baseURI = null;
       if (!XMLElement) {
-        XMLElement = __webpack_require__(61);
-        XMLCData = __webpack_require__(65);
-        XMLComment = __webpack_require__(67);
-        XMLDeclaration = __webpack_require__(68);
-        XMLDocType = __webpack_require__(69);
-        XMLRaw = __webpack_require__(74);
-        XMLText = __webpack_require__(75);
-        XMLProcessingInstruction = __webpack_require__(76);
-        XMLDummy = __webpack_require__(77);
-        NodeType = __webpack_require__(62);
-        XMLNodeList = __webpack_require__(78);
-        XMLNamedNodeMap = __webpack_require__(64);
-        DocumentPosition = __webpack_require__(79);
+        XMLElement = __webpack_require__(62);
+        XMLCData = __webpack_require__(66);
+        XMLComment = __webpack_require__(68);
+        XMLDeclaration = __webpack_require__(69);
+        XMLDocType = __webpack_require__(70);
+        XMLRaw = __webpack_require__(75);
+        XMLText = __webpack_require__(76);
+        XMLProcessingInstruction = __webpack_require__(77);
+        XMLDummy = __webpack_require__(78);
+        NodeType = __webpack_require__(63);
+        XMLNodeList = __webpack_require__(79);
+        XMLNamedNodeMap = __webpack_require__(65);
+        DocumentPosition = __webpack_require__(80);
       }
     }
 
@@ -5540,7 +5657,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 61 */
+/* 62 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5549,15 +5666,15 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  ref = __webpack_require__(54), isObject = ref.isObject, isFunction = ref.isFunction, getValue = ref.getValue;
+  ref = __webpack_require__(55), isObject = ref.isObject, isFunction = ref.isFunction, getValue = ref.getValue;
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLAttribute = __webpack_require__(63);
+  XMLAttribute = __webpack_require__(64);
 
-  XMLNamedNodeMap = __webpack_require__(64);
+  XMLNamedNodeMap = __webpack_require__(65);
 
   module.exports = XMLElement = (function(superClass) {
     extend(XMLElement, superClass);
@@ -5844,7 +5961,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 62 */
+/* 63 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5873,16 +5990,16 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 63 */
+/* 64 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
 (function() {
   var NodeType, XMLAttribute, XMLNode;
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
   module.exports = XMLAttribute = (function() {
     function XMLAttribute(parent, name, value) {
@@ -5987,7 +6104,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 64 */
+/* 65 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6051,7 +6168,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 65 */
+/* 66 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6060,9 +6177,9 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLCharacterData = __webpack_require__(66);
+  XMLCharacterData = __webpack_require__(67);
 
   module.exports = XMLCData = (function(superClass) {
     extend(XMLCData, superClass);
@@ -6093,7 +6210,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 66 */
+/* 67 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6102,7 +6219,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
   module.exports = XMLCharacterData = (function(superClass) {
     extend(XMLCharacterData, superClass);
@@ -6178,7 +6295,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 67 */
+/* 68 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6187,9 +6304,9 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLCharacterData = __webpack_require__(66);
+  XMLCharacterData = __webpack_require__(67);
 
   module.exports = XMLComment = (function(superClass) {
     extend(XMLComment, superClass);
@@ -6220,7 +6337,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 68 */
+/* 69 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6229,11 +6346,11 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isObject = __webpack_require__(54).isObject;
+  isObject = __webpack_require__(55).isObject;
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
   module.exports = XMLDeclaration = (function(superClass) {
     extend(XMLDeclaration, superClass);
@@ -6269,7 +6386,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 69 */
+/* 70 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6278,21 +6395,21 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isObject = __webpack_require__(54).isObject;
+  isObject = __webpack_require__(55).isObject;
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLDTDAttList = __webpack_require__(70);
+  XMLDTDAttList = __webpack_require__(71);
 
-  XMLDTDEntity = __webpack_require__(71);
+  XMLDTDEntity = __webpack_require__(72);
 
-  XMLDTDElement = __webpack_require__(72);
+  XMLDTDElement = __webpack_require__(73);
 
-  XMLDTDNotation = __webpack_require__(73);
+  XMLDTDNotation = __webpack_require__(74);
 
-  XMLNamedNodeMap = __webpack_require__(64);
+  XMLNamedNodeMap = __webpack_require__(65);
 
   module.exports = XMLDocType = (function(superClass) {
     extend(XMLDocType, superClass);
@@ -6461,7 +6578,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 70 */
+/* 71 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6470,9 +6587,9 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
   module.exports = XMLDTDAttList = (function(superClass) {
     extend(XMLDTDAttList, superClass);
@@ -6522,7 +6639,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 71 */
+/* 72 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6531,11 +6648,11 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isObject = __webpack_require__(54).isObject;
+  isObject = __webpack_require__(55).isObject;
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
   module.exports = XMLDTDEntity = (function(superClass) {
     extend(XMLDTDEntity, superClass);
@@ -6625,7 +6742,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 72 */
+/* 73 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6634,9 +6751,9 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
   module.exports = XMLDTDElement = (function(superClass) {
     extend(XMLDTDElement, superClass);
@@ -6669,7 +6786,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 73 */
+/* 74 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6678,9 +6795,9 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
   module.exports = XMLDTDNotation = (function(superClass) {
     extend(XMLDTDNotation, superClass);
@@ -6727,7 +6844,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 74 */
+/* 75 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6736,9 +6853,9 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
   module.exports = XMLRaw = (function(superClass) {
     extend(XMLRaw, superClass);
@@ -6768,7 +6885,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 75 */
+/* 76 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6777,9 +6894,9 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLCharacterData = __webpack_require__(66);
+  XMLCharacterData = __webpack_require__(67);
 
   module.exports = XMLText = (function(superClass) {
     extend(XMLText, superClass);
@@ -6843,7 +6960,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 76 */
+/* 77 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6852,9 +6969,9 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLCharacterData = __webpack_require__(66);
+  XMLCharacterData = __webpack_require__(67);
 
   module.exports = XMLProcessingInstruction = (function(superClass) {
     extend(XMLProcessingInstruction, superClass);
@@ -6898,7 +7015,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 77 */
+/* 78 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6907,9 +7024,9 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(60);
+  XMLNode = __webpack_require__(61);
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
   module.exports = XMLDummy = (function(superClass) {
     extend(XMLDummy, superClass);
@@ -6935,7 +7052,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 78 */
+/* 79 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6969,7 +7086,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 79 */
+/* 80 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6987,7 +7104,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 80 */
+/* 81 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7233,7 +7350,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 81 */
+/* 82 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7242,7 +7359,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLWriterBase = __webpack_require__(82);
+  XMLWriterBase = __webpack_require__(83);
 
   module.exports = XMLStringWriter = (function(superClass) {
     extend(XMLStringWriter, superClass);
@@ -7274,7 +7391,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 82 */
+/* 83 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7282,37 +7399,37 @@ module.exports = function buildURL(url, params, paramsSerializer) {
   var NodeType, WriterState, XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLDummy, XMLElement, XMLProcessingInstruction, XMLRaw, XMLText, XMLWriterBase, assign,
     hasProp = {}.hasOwnProperty;
 
-  assign = __webpack_require__(54).assign;
+  assign = __webpack_require__(55).assign;
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLDeclaration = __webpack_require__(68);
+  XMLDeclaration = __webpack_require__(69);
 
-  XMLDocType = __webpack_require__(69);
+  XMLDocType = __webpack_require__(70);
 
-  XMLCData = __webpack_require__(65);
+  XMLCData = __webpack_require__(66);
 
-  XMLComment = __webpack_require__(67);
+  XMLComment = __webpack_require__(68);
 
-  XMLElement = __webpack_require__(61);
+  XMLElement = __webpack_require__(62);
 
-  XMLRaw = __webpack_require__(74);
+  XMLRaw = __webpack_require__(75);
 
-  XMLText = __webpack_require__(75);
+  XMLText = __webpack_require__(76);
 
-  XMLProcessingInstruction = __webpack_require__(76);
+  XMLProcessingInstruction = __webpack_require__(77);
 
-  XMLDummy = __webpack_require__(77);
+  XMLDummy = __webpack_require__(78);
 
-  XMLDTDAttList = __webpack_require__(70);
+  XMLDTDAttList = __webpack_require__(71);
 
-  XMLDTDElement = __webpack_require__(72);
+  XMLDTDElement = __webpack_require__(73);
 
-  XMLDTDEntity = __webpack_require__(71);
+  XMLDTDEntity = __webpack_require__(72);
 
-  XMLDTDNotation = __webpack_require__(73);
+  XMLDTDNotation = __webpack_require__(74);
 
-  WriterState = __webpack_require__(83);
+  WriterState = __webpack_require__(84);
 
   module.exports = XMLWriterBase = (function() {
     function XMLWriterBase(options) {
@@ -7708,7 +7825,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 83 */
+/* 84 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7724,7 +7841,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 84 */
+/* 85 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7732,43 +7849,43 @@ module.exports = function buildURL(url, params, paramsSerializer) {
   var NodeType, WriterState, XMLAttribute, XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLDocument, XMLDocumentCB, XMLElement, XMLProcessingInstruction, XMLRaw, XMLStringWriter, XMLStringifier, XMLText, getValue, isFunction, isObject, isPlainObject, ref,
     hasProp = {}.hasOwnProperty;
 
-  ref = __webpack_require__(54), isObject = ref.isObject, isFunction = ref.isFunction, isPlainObject = ref.isPlainObject, getValue = ref.getValue;
+  ref = __webpack_require__(55), isObject = ref.isObject, isFunction = ref.isFunction, isPlainObject = ref.isPlainObject, getValue = ref.getValue;
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLDocument = __webpack_require__(56);
+  XMLDocument = __webpack_require__(57);
 
-  XMLElement = __webpack_require__(61);
+  XMLElement = __webpack_require__(62);
 
-  XMLCData = __webpack_require__(65);
+  XMLCData = __webpack_require__(66);
 
-  XMLComment = __webpack_require__(67);
+  XMLComment = __webpack_require__(68);
 
-  XMLRaw = __webpack_require__(74);
+  XMLRaw = __webpack_require__(75);
 
-  XMLText = __webpack_require__(75);
+  XMLText = __webpack_require__(76);
 
-  XMLProcessingInstruction = __webpack_require__(76);
+  XMLProcessingInstruction = __webpack_require__(77);
 
-  XMLDeclaration = __webpack_require__(68);
+  XMLDeclaration = __webpack_require__(69);
 
-  XMLDocType = __webpack_require__(69);
+  XMLDocType = __webpack_require__(70);
 
-  XMLDTDAttList = __webpack_require__(70);
+  XMLDTDAttList = __webpack_require__(71);
 
-  XMLDTDEntity = __webpack_require__(71);
+  XMLDTDEntity = __webpack_require__(72);
 
-  XMLDTDElement = __webpack_require__(72);
+  XMLDTDElement = __webpack_require__(73);
 
-  XMLDTDNotation = __webpack_require__(73);
+  XMLDTDNotation = __webpack_require__(74);
 
-  XMLAttribute = __webpack_require__(63);
+  XMLAttribute = __webpack_require__(64);
 
-  XMLStringifier = __webpack_require__(80);
+  XMLStringifier = __webpack_require__(81);
 
-  XMLStringWriter = __webpack_require__(81);
+  XMLStringWriter = __webpack_require__(82);
 
-  WriterState = __webpack_require__(83);
+  WriterState = __webpack_require__(84);
 
   module.exports = XMLDocumentCB = (function() {
     function XMLDocumentCB(options, onData, onEnd) {
@@ -8258,7 +8375,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 85 */
+/* 86 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -8267,11 +8384,11 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(62);
+  NodeType = __webpack_require__(63);
 
-  XMLWriterBase = __webpack_require__(82);
+  XMLWriterBase = __webpack_require__(83);
 
-  WriterState = __webpack_require__(83);
+  WriterState = __webpack_require__(84);
 
   module.exports = XMLStreamWriter = (function(superClass) {
     extend(XMLStreamWriter, superClass);
@@ -8440,7 +8557,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 86 */
+/* 87 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -8451,17 +8568,17 @@ module.exports = function buildURL(url, params, paramsSerializer) {
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  sax = __webpack_require__(87);
+  sax = __webpack_require__(88);
 
-  events = __webpack_require__(89);
+  events = __webpack_require__(90);
 
-  bom = __webpack_require__(90);
+  bom = __webpack_require__(91);
 
-  processors = __webpack_require__(91);
+  processors = __webpack_require__(92);
 
-  setImmediate = __webpack_require__(92).setImmediate;
+  setImmediate = __webpack_require__(93).setImmediate;
 
-  defaults = __webpack_require__(51).defaults;
+  defaults = __webpack_require__(52).defaults;
 
   isEmpty = function(thing) {
     return typeof thing === "object" && (thing != null) && Object.keys(thing).length === 0;
@@ -8827,7 +8944,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 87 */
+/* 88 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 ;(function (sax) { // wrapper for non-node envs
@@ -8992,7 +9109,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
   var Stream
   try {
-    Stream = __webpack_require__(11).Stream
+    Stream = __webpack_require__(29).Stream
   } catch (ex) {
     Stream = function () {}
   }
@@ -9062,7 +9179,7 @@ module.exports = function buildURL(url, params, paramsSerializer) {
       typeof Buffer.isBuffer === 'function' &&
       Buffer.isBuffer(data)) {
       if (!this._decoder) {
-        var SD = __webpack_require__(88).StringDecoder
+        var SD = __webpack_require__(89).StringDecoder
         this._decoder = new SD('utf8')
       }
       data = this._decoder.write(data)
@@ -10398,21 +10515,21 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 88 */
+/* 89 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("string_decoder");;
 
 /***/ }),
-/* 89 */
+/* 90 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("events");;
 
 /***/ }),
-/* 90 */
+/* 91 */
 /***/ (function(__unused_webpack_module, exports) {
 
 // Generated by CoffeeScript 1.12.7
@@ -10430,7 +10547,7 @@ module.exports = require("events");;
 
 
 /***/ }),
-/* 91 */
+/* 92 */
 /***/ (function(__unused_webpack_module, exports) {
 
 // Generated by CoffeeScript 1.12.7
@@ -10470,125 +10587,11 @@ module.exports = require("events");;
 
 
 /***/ }),
-/* 92 */
+/* 93 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("timers");;
-
-/***/ }),
-/* 93 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-/** @module Node Pom Parser */
-
-
-
-const fs = __webpack_require__(7);
-var xml2js = __webpack_require__(50);
-var traverse = __webpack_require__(94);
-
-// xmljs options https://github.com/Leonidas-from-XIV/node-xml2js#options
-var XML2JS_OPTS = {
-  trim: true,
-  normalizeTags: true,
-  normalize: true,
-  mergeAttrs: true
-};
-
-/**
- * Parses xml into javascript object by using a file path or an xml content.
- * @param {object} opt Is the option with the filePath or xmlContent and the optional format.
- * @return {object} The pom object along with the timers.
- */
-module.exports.parse = function(opt, callback) {
-  if (!opt) {
-    throw new Error("You must provide options: opt.filePath and any other option of " +
-      "https://github.com/Leonidas-from-XIV/node-xml2js#options");
-  }
-  if (!opt.xmlContent && !opt.filePath) {
-    throw new Error("You must provide the opt.filePath or the opt.xmlContent");
-  }
-
-
-  // If the xml content is was not provided by the api client.
-  // https://github.com/petkaantonov/bluebird/blob/master/API.md#error-rejectedhandler----promise
-  if (!opt.xmlContent) {
-    readFileAsync(opt.filePath, "utf8").then(function(xmlContent) {
-      return xmlContent;
-
-    }).then(_parseWithXml2js).then(function(result) {
-      callback(null, result);
-
-    }).catch(function(e) {
-      callback(e, null);
-    });
-
-  } else {
-    // parse the xml provided by the api client.
-    _parseWithXml2js(opt.xmlContent).then(function(result) {
-      delete result.xmlContent;
-      callback(null, result);
-
-    }).catch(function (e) {
-      callback(e);
-    });
-  }
-
-};
-
-/**
- * Parses the given xml content.
- * @param xmlContent {string} Is the xml content in string using utf-8 format.
- * @param loadedXml {boolean} Whether the xml was loaded from the file-system.
- * @param callback {function} The callback function using Javascript PCS.
- */
-function _parseWithXml2js(xmlContent) {
-  return new Promise(function(resolve, reject) {
-    // parse the pom, erasing all
-    xml2js.parseString(xmlContent, XML2JS_OPTS, function(err, pomObject) {
-      if (err) {
-        // Reject with the error
-        reject(err);
-      }
-
-      // Replace the arrays with single elements with strings
-      removeSingleArrays(pomObject);
-
-      // Response to the call
-      resolve({
-        pomXml: xmlContent, // Only add the pomXml when loaded from the file-system.
-        pomObject: pomObject // Always add the object
-      });
-    });
-  });
-}
-
-/**
- * Removes all the arrays with single elements with a string value.
- * @param {object} o is the object to be traversed.
- */
-function removeSingleArrays(obj) {
-  // Traverse all the elements of the object
-  traverse(obj).forEach(function traversing(value) {
-    // As the XML parser returns single fields as arrays.
-    if (value instanceof Array && value.length === 1) {
-      this.update(value[0]);
-    }
-  });
-}
-
-function readFileAsync(path, encoding) {
-  return new Promise((resolve, reject) => fs.readFile(path, {encoding}, (err, data) => {
-    if (err) {
-      reject(err);
-    } else {
-      resolve(data);
-    }
-  }));
-}
-
 
 /***/ }),
 /* 94 */
