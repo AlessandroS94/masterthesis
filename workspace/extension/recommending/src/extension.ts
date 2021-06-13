@@ -6,8 +6,8 @@ import { OpenDialogOptions, Uri, window } from "vscode";
 import * as fs from "fs-extra";
 import { LocalStorage } from './storage/LocalStorage';
 import { callSinglePom } from './service/request';
-import {multiplePomFinder} from './utils/pomFInder';
-
+import {multiplePomFinder} from './utils/pomFinder';
+import { reccomendListUI } from './utils/uiComponent';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
@@ -55,9 +55,10 @@ function getPom(context: vscode.ExtensionContext, storageManager: LocalStorage) 
 	let obj = {lib: multiplePomFinder()}
 	let getRecommend = async () => {
 		var a = await callSinglePom(obj);
-		console.log(a?.data.score)
-	}
+		console.log(a?.data.score);
+	};
 	getRecommend();
+	reccomendListUI();
 		
 }
 

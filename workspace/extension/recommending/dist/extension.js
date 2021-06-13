@@ -22,7 +22,8 @@ exports.deactivate = exports.activate = void 0;
 const vscode = __webpack_require__(1);
 const LocalStorage_1 = __webpack_require__(2);
 const request_1 = __webpack_require__(3);
-const pomFInder_1 = __webpack_require__(4);
+const pomFinder_1 = __webpack_require__(98);
+const uiComponent_1 = __webpack_require__(51);
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -55,12 +56,13 @@ exports.deactivate = deactivate;
 // This function find the pom on the VSCode Workspace
 // and parse the pom 
 function getPom(context, storageManager) {
-    let obj = { lib: pomFInder_1.multiplePomFinder() };
+    let obj = { lib: pomFinder_1.multiplePomFinder() };
     let getRecommend = () => __awaiter(this, void 0, void 0, function* () {
         var a = yield request_1.callSinglePom(obj);
         console.log(a === null || a === void 0 ? void 0 : a.data.score);
     });
     getRecommend();
+    uiComponent_1.reccomendListUI();
 }
 
 
@@ -110,7 +112,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.callSinglePom = void 0;
-const axios_1 = __webpack_require__(96);
+const axios_1 = __webpack_require__(4);
 // URL to connect for POM recommend
 const URL_BASIC_RECCOMEND = "http://192.168.1.105:5000/recommend";
 /*
@@ -138,48 +140,433 @@ function PX2data(PX2data) {
 
 /***/ }),
 /* 4 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.multiplePomFinder = void 0;
-const vscode = __webpack_require__(1);
-var pomParser = __webpack_require__(49);
-function multiplePomFinder() {
-    var response = [];
-    vscode.workspace.findFiles('**/pom.xml').then(files => {
-        files.forEach(file => {
-            //open file 
-            // The required options, including the filePath.
-            // Other parsing options from https://github.com/Leonidas-from-XIV/node-xml2js#options
-            var opts = { filePath: file.fsPath }; // The path to a pom file
-            // Parse the pom based on a path
-            pomParser.parse(opts, function (err, pomResponse) {
-                if (err) {
-                    console.log("ERROR: " + err);
-                    process.exit(1);
-                }
-                // The original pom xml that was loaded is provided.
-                //console.log("XML: " + pomResponse.pomXml);
-                // The parsed pom pbject.
-                //var result = JSON.stringify(pomResponse.pomObject.project.dependencies.dependency);
-                pomResponse.pomObject.project.dependencies.dependency.forEach((key) => {
-                    const library = (key.groupid);
-                    response.push(library);
-                });
-                //storageManager.setValue(""+counter,response);
-                //View the pom parsed	
-            });
-        });
-    });
-    return response;
-}
-exports.multiplePomFinder = multiplePomFinder;
-
+module.exports = __webpack_require__(5);
 
 /***/ }),
 /* 5 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var utils = __webpack_require__(6);
+var bind = __webpack_require__(7);
+var Axios = __webpack_require__(8);
+var mergeConfig = __webpack_require__(46);
+var defaults = __webpack_require__(14);
+
+/**
+ * Create an instance of Axios
+ *
+ * @param {Object} defaultConfig The default config for the instance
+ * @return {Axios} A new instance of Axios
+ */
+function createInstance(defaultConfig) {
+  var context = new Axios(defaultConfig);
+  var instance = bind(Axios.prototype.request, context);
+
+  // Copy axios.prototype to instance
+  utils.extend(instance, Axios.prototype, context);
+
+  // Copy context to instance
+  utils.extend(instance, context);
+
+  return instance;
+}
+
+// Create the default instance to be exported
+var axios = createInstance(defaults);
+
+// Expose Axios class to allow class inheritance
+axios.Axios = Axios;
+
+// Factory for creating new instances
+axios.create = function create(instanceConfig) {
+  return createInstance(mergeConfig(axios.defaults, instanceConfig));
+};
+
+// Expose Cancel & CancelToken
+axios.Cancel = __webpack_require__(47);
+axios.CancelToken = __webpack_require__(48);
+axios.isCancel = __webpack_require__(13);
+
+// Expose all/spread
+axios.all = function all(promises) {
+  return Promise.all(promises);
+};
+axios.spread = __webpack_require__(49);
+
+// Expose isAxiosError
+axios.isAxiosError = __webpack_require__(50);
+
+module.exports = axios;
+
+// Allow use of default import syntax in TypeScript
+module.exports.default = axios;
+
+
+/***/ }),
+/* 6 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var bind = __webpack_require__(7);
+
+/*global toString:true*/
+
+// utils is a library of generic helper functions non-specific to axios
+
+var toString = Object.prototype.toString;
+
+/**
+ * Determine if a value is an Array
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an Array, otherwise false
+ */
+function isArray(val) {
+  return toString.call(val) === '[object Array]';
+}
+
+/**
+ * Determine if a value is undefined
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if the value is undefined, otherwise false
+ */
+function isUndefined(val) {
+  return typeof val === 'undefined';
+}
+
+/**
+ * Determine if a value is a Buffer
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Buffer, otherwise false
+ */
+function isBuffer(val) {
+  return val !== null && !isUndefined(val) && val.constructor !== null && !isUndefined(val.constructor)
+    && typeof val.constructor.isBuffer === 'function' && val.constructor.isBuffer(val);
+}
+
+/**
+ * Determine if a value is an ArrayBuffer
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an ArrayBuffer, otherwise false
+ */
+function isArrayBuffer(val) {
+  return toString.call(val) === '[object ArrayBuffer]';
+}
+
+/**
+ * Determine if a value is a FormData
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an FormData, otherwise false
+ */
+function isFormData(val) {
+  return (typeof FormData !== 'undefined') && (val instanceof FormData);
+}
+
+/**
+ * Determine if a value is a view on an ArrayBuffer
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a view on an ArrayBuffer, otherwise false
+ */
+function isArrayBufferView(val) {
+  var result;
+  if ((typeof ArrayBuffer !== 'undefined') && (ArrayBuffer.isView)) {
+    result = ArrayBuffer.isView(val);
+  } else {
+    result = (val) && (val.buffer) && (val.buffer instanceof ArrayBuffer);
+  }
+  return result;
+}
+
+/**
+ * Determine if a value is a String
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a String, otherwise false
+ */
+function isString(val) {
+  return typeof val === 'string';
+}
+
+/**
+ * Determine if a value is a Number
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Number, otherwise false
+ */
+function isNumber(val) {
+  return typeof val === 'number';
+}
+
+/**
+ * Determine if a value is an Object
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is an Object, otherwise false
+ */
+function isObject(val) {
+  return val !== null && typeof val === 'object';
+}
+
+/**
+ * Determine if a value is a plain Object
+ *
+ * @param {Object} val The value to test
+ * @return {boolean} True if value is a plain Object, otherwise false
+ */
+function isPlainObject(val) {
+  if (toString.call(val) !== '[object Object]') {
+    return false;
+  }
+
+  var prototype = Object.getPrototypeOf(val);
+  return prototype === null || prototype === Object.prototype;
+}
+
+/**
+ * Determine if a value is a Date
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Date, otherwise false
+ */
+function isDate(val) {
+  return toString.call(val) === '[object Date]';
+}
+
+/**
+ * Determine if a value is a File
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a File, otherwise false
+ */
+function isFile(val) {
+  return toString.call(val) === '[object File]';
+}
+
+/**
+ * Determine if a value is a Blob
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Blob, otherwise false
+ */
+function isBlob(val) {
+  return toString.call(val) === '[object Blob]';
+}
+
+/**
+ * Determine if a value is a Function
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Function, otherwise false
+ */
+function isFunction(val) {
+  return toString.call(val) === '[object Function]';
+}
+
+/**
+ * Determine if a value is a Stream
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a Stream, otherwise false
+ */
+function isStream(val) {
+  return isObject(val) && isFunction(val.pipe);
+}
+
+/**
+ * Determine if a value is a URLSearchParams object
+ *
+ * @param {Object} val The value to test
+ * @returns {boolean} True if value is a URLSearchParams object, otherwise false
+ */
+function isURLSearchParams(val) {
+  return typeof URLSearchParams !== 'undefined' && val instanceof URLSearchParams;
+}
+
+/**
+ * Trim excess whitespace off the beginning and end of a string
+ *
+ * @param {String} str The String to trim
+ * @returns {String} The String freed of excess whitespace
+ */
+function trim(str) {
+  return str.replace(/^\s*/, '').replace(/\s*$/, '');
+}
+
+/**
+ * Determine if we're running in a standard browser environment
+ *
+ * This allows axios to run in a web worker, and react-native.
+ * Both environments support XMLHttpRequest, but not fully standard globals.
+ *
+ * web workers:
+ *  typeof window -> undefined
+ *  typeof document -> undefined
+ *
+ * react-native:
+ *  navigator.product -> 'ReactNative'
+ * nativescript
+ *  navigator.product -> 'NativeScript' or 'NS'
+ */
+function isStandardBrowserEnv() {
+  if (typeof navigator !== 'undefined' && (navigator.product === 'ReactNative' ||
+                                           navigator.product === 'NativeScript' ||
+                                           navigator.product === 'NS')) {
+    return false;
+  }
+  return (
+    typeof window !== 'undefined' &&
+    typeof document !== 'undefined'
+  );
+}
+
+/**
+ * Iterate over an Array or an Object invoking a function for each item.
+ *
+ * If `obj` is an Array callback will be called passing
+ * the value, index, and complete array for each item.
+ *
+ * If 'obj' is an Object callback will be called passing
+ * the value, key, and complete object for each property.
+ *
+ * @param {Object|Array} obj The object to iterate
+ * @param {Function} fn The callback to invoke for each item
+ */
+function forEach(obj, fn) {
+  // Don't bother if no value provided
+  if (obj === null || typeof obj === 'undefined') {
+    return;
+  }
+
+  // Force an array if not already something iterable
+  if (typeof obj !== 'object') {
+    /*eslint no-param-reassign:0*/
+    obj = [obj];
+  }
+
+  if (isArray(obj)) {
+    // Iterate over array values
+    for (var i = 0, l = obj.length; i < l; i++) {
+      fn.call(null, obj[i], i, obj);
+    }
+  } else {
+    // Iterate over object keys
+    for (var key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        fn.call(null, obj[key], key, obj);
+      }
+    }
+  }
+}
+
+/**
+ * Accepts varargs expecting each argument to be an object, then
+ * immutably merges the properties of each object and returns result.
+ *
+ * When multiple objects contain the same key the later object in
+ * the arguments list will take precedence.
+ *
+ * Example:
+ *
+ * ```js
+ * var result = merge({foo: 123}, {foo: 456});
+ * console.log(result.foo); // outputs 456
+ * ```
+ *
+ * @param {Object} obj1 Object to merge
+ * @returns {Object} Result of all merge properties
+ */
+function merge(/* obj1, obj2, obj3, ... */) {
+  var result = {};
+  function assignValue(val, key) {
+    if (isPlainObject(result[key]) && isPlainObject(val)) {
+      result[key] = merge(result[key], val);
+    } else if (isPlainObject(val)) {
+      result[key] = merge({}, val);
+    } else if (isArray(val)) {
+      result[key] = val.slice();
+    } else {
+      result[key] = val;
+    }
+  }
+
+  for (var i = 0, l = arguments.length; i < l; i++) {
+    forEach(arguments[i], assignValue);
+  }
+  return result;
+}
+
+/**
+ * Extends object a by mutably adding to it the properties of object b.
+ *
+ * @param {Object} a The object to be extended
+ * @param {Object} b The object to copy properties from
+ * @param {Object} thisArg The object to bind function to
+ * @return {Object} The resulting value of object a
+ */
+function extend(a, b, thisArg) {
+  forEach(b, function assignValue(val, key) {
+    if (thisArg && typeof val === 'function') {
+      a[key] = bind(val, thisArg);
+    } else {
+      a[key] = val;
+    }
+  });
+  return a;
+}
+
+/**
+ * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
+ *
+ * @param {string} content with BOM
+ * @return {string} content value without BOM
+ */
+function stripBOM(content) {
+  if (content.charCodeAt(0) === 0xFEFF) {
+    content = content.slice(1);
+  }
+  return content;
+}
+
+module.exports = {
+  isArray: isArray,
+  isArrayBuffer: isArrayBuffer,
+  isBuffer: isBuffer,
+  isFormData: isFormData,
+  isArrayBufferView: isArrayBufferView,
+  isString: isString,
+  isNumber: isNumber,
+  isObject: isObject,
+  isPlainObject: isPlainObject,
+  isUndefined: isUndefined,
+  isDate: isDate,
+  isFile: isFile,
+  isBlob: isBlob,
+  isFunction: isFunction,
+  isStream: isStream,
+  isURLSearchParams: isURLSearchParams,
+  isStandardBrowserEnv: isStandardBrowserEnv,
+  forEach: forEach,
+  merge: merge,
+  extend: extend,
+  trim: trim,
+  stripBOM: stripBOM
+};
+
+
+/***/ }),
+/* 7 */
 /***/ ((module) => {
 
 "use strict";
@@ -197,17 +584,17 @@ module.exports = function bind(fn, thisArg) {
 
 
 /***/ }),
-/* 6 */
+/* 8 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
-var buildURL = __webpack_require__(7);
-var InterceptorManager = __webpack_require__(8);
-var dispatchRequest = __webpack_require__(9);
-var mergeConfig = __webpack_require__(44);
+var utils = __webpack_require__(6);
+var buildURL = __webpack_require__(9);
+var InterceptorManager = __webpack_require__(10);
+var dispatchRequest = __webpack_require__(11);
+var mergeConfig = __webpack_require__(46);
 
 /**
  * Create a new instance of Axios
@@ -299,13 +686,13 @@ module.exports = Axios;
 
 
 /***/ }),
-/* 7 */
+/* 9 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
+var utils = __webpack_require__(6);
 
 function encode(val) {
   return encodeURIComponent(val).
@@ -376,13 +763,13 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 8 */
+/* 10 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
+var utils = __webpack_require__(6);
 
 function InterceptorManager() {
   this.handlers = [];
@@ -435,16 +822,16 @@ module.exports = InterceptorManager;
 
 
 /***/ }),
-/* 9 */
+/* 11 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
-var transformData = __webpack_require__(10);
-var isCancel = __webpack_require__(11);
-var defaults = __webpack_require__(12);
+var utils = __webpack_require__(6);
+var transformData = __webpack_require__(12);
+var isCancel = __webpack_require__(13);
+var defaults = __webpack_require__(14);
 
 /**
  * Throws a `Cancel` if cancellation has been requested.
@@ -521,13 +908,13 @@ module.exports = function dispatchRequest(config) {
 
 
 /***/ }),
-/* 10 */
+/* 12 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
+var utils = __webpack_require__(6);
 
 /**
  * Transform the data for a request or a response
@@ -548,7 +935,7 @@ module.exports = function transformData(data, headers, fns) {
 
 
 /***/ }),
-/* 11 */
+/* 13 */
 /***/ ((module) => {
 
 "use strict";
@@ -560,14 +947,14 @@ module.exports = function isCancel(value) {
 
 
 /***/ }),
-/* 12 */
+/* 14 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
-var normalizeHeaderName = __webpack_require__(13);
+var utils = __webpack_require__(6);
+var normalizeHeaderName = __webpack_require__(15);
 
 var DEFAULT_CONTENT_TYPE = {
   'Content-Type': 'application/x-www-form-urlencoded'
@@ -583,10 +970,10 @@ function getDefaultAdapter() {
   var adapter;
   if (typeof XMLHttpRequest !== 'undefined') {
     // For browsers use XHR adapter
-    adapter = __webpack_require__(14);
+    adapter = __webpack_require__(16);
   } else if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
     // For node use HTTP adapter
-    adapter = __webpack_require__(24);
+    adapter = __webpack_require__(26);
   }
   return adapter;
 }
@@ -665,13 +1052,13 @@ module.exports = defaults;
 
 
 /***/ }),
-/* 13 */
+/* 15 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
+var utils = __webpack_require__(6);
 
 module.exports = function normalizeHeaderName(headers, normalizedName) {
   utils.forEach(headers, function processHeader(value, name) {
@@ -684,20 +1071,20 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 
 
 /***/ }),
-/* 14 */
+/* 16 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
-var settle = __webpack_require__(15);
-var cookies = __webpack_require__(18);
-var buildURL = __webpack_require__(7);
-var buildFullPath = __webpack_require__(19);
-var parseHeaders = __webpack_require__(22);
-var isURLSameOrigin = __webpack_require__(23);
-var createError = __webpack_require__(16);
+var utils = __webpack_require__(6);
+var settle = __webpack_require__(17);
+var cookies = __webpack_require__(20);
+var buildURL = __webpack_require__(9);
+var buildFullPath = __webpack_require__(21);
+var parseHeaders = __webpack_require__(24);
+var isURLSameOrigin = __webpack_require__(25);
+var createError = __webpack_require__(18);
 
 module.exports = function xhrAdapter(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -870,13 +1257,13 @@ module.exports = function xhrAdapter(config) {
 
 
 /***/ }),
-/* 15 */
+/* 17 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var createError = __webpack_require__(16);
+var createError = __webpack_require__(18);
 
 /**
  * Resolve or reject a Promise based on response status.
@@ -902,13 +1289,13 @@ module.exports = function settle(resolve, reject, response) {
 
 
 /***/ }),
-/* 16 */
+/* 18 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var enhanceError = __webpack_require__(17);
+var enhanceError = __webpack_require__(19);
 
 /**
  * Create an Error with the specified message, config, error code, request and response.
@@ -927,7 +1314,7 @@ module.exports = function createError(message, config, code, request, response) 
 
 
 /***/ }),
-/* 17 */
+/* 19 */
 /***/ ((module) => {
 
 "use strict";
@@ -976,13 +1363,13 @@ module.exports = function enhanceError(error, config, code, request, response) {
 
 
 /***/ }),
-/* 18 */
+/* 20 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
+var utils = __webpack_require__(6);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -1036,14 +1423,14 @@ module.exports = (
 
 
 /***/ }),
-/* 19 */
+/* 21 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var isAbsoluteURL = __webpack_require__(20);
-var combineURLs = __webpack_require__(21);
+var isAbsoluteURL = __webpack_require__(22);
+var combineURLs = __webpack_require__(23);
 
 /**
  * Creates a new URL by combining the baseURL with the requestedURL,
@@ -1063,7 +1450,7 @@ module.exports = function buildFullPath(baseURL, requestedURL) {
 
 
 /***/ }),
-/* 20 */
+/* 22 */
 /***/ ((module) => {
 
 "use strict";
@@ -1084,7 +1471,7 @@ module.exports = function isAbsoluteURL(url) {
 
 
 /***/ }),
-/* 21 */
+/* 23 */
 /***/ ((module) => {
 
 "use strict";
@@ -1105,13 +1492,13 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 
 
 /***/ }),
-/* 22 */
+/* 24 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
+var utils = __webpack_require__(6);
 
 // Headers whose duplicates are ignored by node
 // c.f. https://nodejs.org/api/http.html#http_message_headers
@@ -1165,13 +1552,13 @@ module.exports = function parseHeaders(headers) {
 
 
 /***/ }),
-/* 23 */
+/* 25 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
+var utils = __webpack_require__(6);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -1240,25 +1627,25 @@ module.exports = (
 
 
 /***/ }),
-/* 24 */
+/* 26 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
-var settle = __webpack_require__(15);
-var buildFullPath = __webpack_require__(19);
-var buildURL = __webpack_require__(7);
-var http = __webpack_require__(25);
-var https = __webpack_require__(26);
-var httpFollow = __webpack_require__(27).http;
-var httpsFollow = __webpack_require__(27).https;
-var url = __webpack_require__(28);
-var zlib = __webpack_require__(42);
-var pkg = __webpack_require__(43);
-var createError = __webpack_require__(16);
-var enhanceError = __webpack_require__(17);
+var utils = __webpack_require__(6);
+var settle = __webpack_require__(17);
+var buildFullPath = __webpack_require__(21);
+var buildURL = __webpack_require__(9);
+var http = __webpack_require__(27);
+var https = __webpack_require__(28);
+var httpFollow = __webpack_require__(29).http;
+var httpsFollow = __webpack_require__(29).https;
+var url = __webpack_require__(30);
+var zlib = __webpack_require__(44);
+var pkg = __webpack_require__(45);
+var createError = __webpack_require__(18);
+var enhanceError = __webpack_require__(19);
 
 var isHttps = /https:?/;
 
@@ -1550,30 +1937,30 @@ module.exports = function httpAdapter(config) {
 
 
 /***/ }),
-/* 25 */
+/* 27 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("http");;
 
 /***/ }),
-/* 26 */
+/* 28 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("https");;
 
 /***/ }),
-/* 27 */
+/* 29 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var url = __webpack_require__(28);
+var url = __webpack_require__(30);
 var URL = url.URL;
-var http = __webpack_require__(25);
-var https = __webpack_require__(26);
-var Writable = __webpack_require__(29).Writable;
-var assert = __webpack_require__(30);
-var debug = __webpack_require__(31);
+var http = __webpack_require__(27);
+var https = __webpack_require__(28);
+var Writable = __webpack_require__(31).Writable;
+var assert = __webpack_require__(32);
+var debug = __webpack_require__(33);
 
 // Create handlers that pass events from native requests
 var events = ["abort", "aborted", "connect", "error", "socket", "timeout"];
@@ -2101,28 +2488,28 @@ module.exports.wrap = wrap;
 
 
 /***/ }),
-/* 28 */
+/* 30 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("url");;
 
 /***/ }),
-/* 29 */
+/* 31 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("stream");;
 
 /***/ }),
-/* 30 */
+/* 32 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("assert");;
 
 /***/ }),
-/* 31 */
+/* 33 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var debug;
@@ -2131,7 +2518,7 @@ module.exports = function () {
   if (!debug) {
     try {
       /* eslint global-require: off */
-      debug = __webpack_require__(32)("follow-redirects");
+      debug = __webpack_require__(34)("follow-redirects");
     }
     catch (error) {
       debug = function () { /* */ };
@@ -2142,7 +2529,7 @@ module.exports = function () {
 
 
 /***/ }),
-/* 32 */
+/* 34 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /**
@@ -2151,14 +2538,14 @@ module.exports = function () {
  */
 
 if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
-	module.exports = __webpack_require__(33);
+	module.exports = __webpack_require__(35);
 } else {
-	module.exports = __webpack_require__(36);
+	module.exports = __webpack_require__(38);
 }
 
 
 /***/ }),
-/* 33 */
+/* 35 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /* eslint-env browser */
@@ -2415,7 +2802,7 @@ function localstorage() {
 	}
 }
 
-module.exports = __webpack_require__(34)(exports);
+module.exports = __webpack_require__(36)(exports);
 
 const {formatters} = module.exports;
 
@@ -2433,7 +2820,7 @@ formatters.j = function (v) {
 
 
 /***/ }),
-/* 34 */
+/* 36 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 
@@ -2449,7 +2836,7 @@ function setup(env) {
 	createDebug.disable = disable;
 	createDebug.enable = enable;
 	createDebug.enabled = enabled;
-	createDebug.humanize = __webpack_require__(35);
+	createDebug.humanize = __webpack_require__(37);
 	createDebug.destroy = destroy;
 
 	Object.keys(env).forEach(key => {
@@ -2700,7 +3087,7 @@ module.exports = setup;
 
 
 /***/ }),
-/* 35 */
+/* 37 */
 /***/ ((module) => {
 
 /**
@@ -2868,15 +3255,15 @@ function plural(ms, msAbs, n, name) {
 
 
 /***/ }),
-/* 36 */
+/* 38 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /**
  * Module dependencies.
  */
 
-const tty = __webpack_require__(37);
-const util = __webpack_require__(38);
+const tty = __webpack_require__(39);
+const util = __webpack_require__(40);
 
 /**
  * This is the Node.js implementation of `debug()`.
@@ -2902,7 +3289,7 @@ exports.colors = [6, 2, 3, 4, 5, 1];
 try {
 	// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
 	// eslint-disable-next-line import/no-extraneous-dependencies
-	const supportsColor = __webpack_require__(39);
+	const supportsColor = __webpack_require__(41);
 
 	if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
 		exports.colors = [
@@ -3110,7 +3497,7 @@ function init(debug) {
 	}
 }
 
-module.exports = __webpack_require__(34)(exports);
+module.exports = __webpack_require__(36)(exports);
 
 const {formatters} = module.exports;
 
@@ -3137,28 +3524,28 @@ formatters.O = function (v) {
 
 
 /***/ }),
-/* 37 */
+/* 39 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("tty");;
 
 /***/ }),
-/* 38 */
+/* 40 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("util");;
 
 /***/ }),
-/* 39 */
+/* 41 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
-const os = __webpack_require__(40);
-const tty = __webpack_require__(37);
-const hasFlag = __webpack_require__(41);
+const os = __webpack_require__(42);
+const tty = __webpack_require__(39);
+const hasFlag = __webpack_require__(43);
 
 const {env} = process;
 
@@ -3293,14 +3680,14 @@ module.exports = {
 
 
 /***/ }),
-/* 40 */
+/* 42 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("os");;
 
 /***/ }),
-/* 41 */
+/* 43 */
 /***/ ((module) => {
 
 "use strict";
@@ -3315,27 +3702,27 @@ module.exports = (flag, argv = process.argv) => {
 
 
 /***/ }),
-/* 42 */
+/* 44 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("zlib");;
 
 /***/ }),
-/* 43 */
+/* 45 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = JSON.parse('{"name":"axios","version":"0.21.1","description":"Promise based HTTP client for the browser and node.js","main":"index.js","scripts":{"test":"grunt test && bundlesize","start":"node ./sandbox/server.js","build":"NODE_ENV=production grunt build","preversion":"npm test","version":"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json","postversion":"git push && git push --tags","examples":"node ./examples/server.js","coveralls":"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js","fix":"eslint --fix lib/**/*.js"},"repository":{"type":"git","url":"https://github.com/axios/axios.git"},"keywords":["xhr","http","ajax","promise","node"],"author":"Matt Zabriskie","license":"MIT","bugs":{"url":"https://github.com/axios/axios/issues"},"homepage":"https://github.com/axios/axios","devDependencies":{"bundlesize":"^0.17.0","coveralls":"^3.0.0","es6-promise":"^4.2.4","grunt":"^1.0.2","grunt-banner":"^0.6.0","grunt-cli":"^1.2.0","grunt-contrib-clean":"^1.1.0","grunt-contrib-watch":"^1.0.0","grunt-eslint":"^20.1.0","grunt-karma":"^2.0.0","grunt-mocha-test":"^0.13.3","grunt-ts":"^6.0.0-beta.19","grunt-webpack":"^1.0.18","istanbul-instrumenter-loader":"^1.0.0","jasmine-core":"^2.4.1","karma":"^1.3.0","karma-chrome-launcher":"^2.2.0","karma-coverage":"^1.1.1","karma-firefox-launcher":"^1.1.0","karma-jasmine":"^1.1.1","karma-jasmine-ajax":"^0.1.13","karma-opera-launcher":"^1.0.0","karma-safari-launcher":"^1.0.0","karma-sauce-launcher":"^1.2.0","karma-sinon":"^1.0.5","karma-sourcemap-loader":"^0.3.7","karma-webpack":"^1.7.0","load-grunt-tasks":"^3.5.2","minimist":"^1.2.0","mocha":"^5.2.0","sinon":"^4.5.0","typescript":"^2.8.1","url-search-params":"^0.10.0","webpack":"^1.13.1","webpack-dev-server":"^1.14.1"},"browser":{"./lib/adapters/http.js":"./lib/adapters/xhr.js"},"jsdelivr":"dist/axios.min.js","unpkg":"dist/axios.min.js","typings":"./index.d.ts","dependencies":{"follow-redirects":"^1.10.0"},"bundlesize":[{"path":"./dist/axios.min.js","threshold":"5kB"}]}');
 
 /***/ }),
-/* 44 */
+/* 46 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(98);
+var utils = __webpack_require__(6);
 
 /**
  * Config-specific merge-function which creates a new config-object
@@ -3423,7 +3810,7 @@ module.exports = function mergeConfig(config1, config2) {
 
 
 /***/ }),
-/* 45 */
+/* 47 */
 /***/ ((module) => {
 
 "use strict";
@@ -3449,13 +3836,13 @@ module.exports = Cancel;
 
 
 /***/ }),
-/* 46 */
+/* 48 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Cancel = __webpack_require__(45);
+var Cancel = __webpack_require__(47);
 
 /**
  * A `CancelToken` is an object that can be used to request cancellation of an operation.
@@ -3513,7 +3900,7 @@ module.exports = CancelToken;
 
 
 /***/ }),
-/* 47 */
+/* 49 */
 /***/ ((module) => {
 
 "use strict";
@@ -3547,7 +3934,7 @@ module.exports = function spread(callback) {
 
 
 /***/ }),
-/* 48 */
+/* 50 */
 /***/ ((module) => {
 
 "use strict";
@@ -3565,7 +3952,107 @@ module.exports = function isAxiosError(payload) {
 
 
 /***/ }),
-/* 49 */
+/* 51 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.reccomendListUI = void 0;
+const vscode = __webpack_require__(1);
+function reccomendListUI() {
+    const panel = vscode.window.createWebviewPanel('catCoding', 'Cat Coding', vscode.ViewColumn.One, {});
+    // And set its HTML content
+    panel.webview.html = getWebviewContent();
+}
+exports.reccomendListUI = reccomendListUI;
+function getWebviewContent() {
+    return `<!doctype html>
+  <html lang="en">
+    <head>
+      <!-- Required meta tags -->
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+      <!-- Bootstrap CSS -->
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+  
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Recoomend</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDarkDropdown" aria-controls="navbarNavDarkDropdown" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+  </div>
+</nav>
+    </head>
+    <body>
+
+    <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-white" style="width: 380px;">
+
+    <a href="/" class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
+      <svg class="bi me-2" width="30" height="24"><use xlink:href="#bootstrap"></use></svg>
+      <span class="fs-5 fw-semibold"> List Library found </span>
+    </a>
+    <div class="list-group list-group-flush border-bottom scrollarea">
+      <a href="#" class="list-group-item list-group-item-action active py-3 lh-tight" aria-current="true">
+        <div class="d-flex w-100 align-items-center justify-content-between">
+          <strong class="mb-1">List group item heading</strong>
+        </div>
+        <div class="col-10 mb-1 small">Some placeholder content in a paragraph below the heading and date.</div>
+      </a>
+      <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+        <div class="d-flex w-100 align-items-center justify-content-between">
+          <strong class="mb-1">List group item heading</strong>
+        </div>
+        <div class="col-10 mb-1 small">Some placeholder content in a paragraph below the heading and date.</div>
+      </a>
+    </div>
+
+    <div class="d-flex flex-column  flex-shrink-2 bg-white" style="width: 380px;">
+    
+    <a href="/" class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
+      <svg class="bi me-2" width="30" height="24"><use xlink:href="#bootstrap"></use></svg>
+      <span class="fs-5 fw-semibold">List group</span>
+    </a>
+    <div class="list-group list-group-flush border-bottom scrollarea">
+      <a href="#" class="list-group-item list-group-item-action active py-3 lh-tight" aria-current="true">
+        <div class="d-flex w-100 align-items-center justify-content-between">
+          <strong class="mb-1">List group item heading</strong>
+          
+        </div>
+        <div class="col-10 mb-1 small">Some placeholder content in a paragraph below the heading and date.</div>
+      </a>
+      <a href="#" class="list-group-item list-group-item-action py-3 lh-tight">
+        <div class="d-flex w-100 align-items-center justify-content-between">
+          <strong class="mb-1">List group item heading</strong>
+          <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
+  </div>
+        </div>
+        <div class="col-10 mb-1 small">Some placeholder content in a paragraph below the heading and date.</div>
+      </a>
+    </div>
+
+  </div>
+  
+      <!-- Optional JavaScript; choose one of the two! -->
+  
+      <!-- Option 1: Bootstrap Bundle with Popper -->
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+  
+      <!-- Option 2: Separate Popper and Bootstrap JS -->
+      <!--
+      <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script>
+      -->
+    </body>
+  </html>
+  `;
+}
+
+
+/***/ }),
+/* 52 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -3573,9 +4060,9 @@ module.exports = function isAxiosError(payload) {
 
 
 
-const fs = __webpack_require__(50);
-var xml2js = __webpack_require__(51);
-var traverse = __webpack_require__(94);
+const fs = __webpack_require__(53);
+var xml2js = __webpack_require__(54);
+var traverse = __webpack_require__(97);
 
 // xmljs options https://github.com/Leonidas-from-XIV/node-xml2js#options
 var XML2JS_OPTS = {
@@ -3679,14 +4166,14 @@ function readFileAsync(path, encoding) {
 
 
 /***/ }),
-/* 50 */
+/* 53 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("fs");;
 
 /***/ }),
-/* 51 */
+/* 54 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -3696,13 +4183,13 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  defaults = __webpack_require__(52);
+  defaults = __webpack_require__(55);
 
-  builder = __webpack_require__(53);
+  builder = __webpack_require__(56);
 
-  parser = __webpack_require__(87);
+  parser = __webpack_require__(90);
 
-  processors = __webpack_require__(92);
+  processors = __webpack_require__(95);
 
   exports.defaults = defaults.defaults;
 
@@ -3731,7 +4218,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 52 */
+/* 55 */
 /***/ (function(__unused_webpack_module, exports) {
 
 // Generated by CoffeeScript 1.12.7
@@ -3809,7 +4296,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 53 */
+/* 56 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -3818,9 +4305,9 @@ module.exports = require("fs");;
   var builder, defaults, escapeCDATA, requiresCDATA, wrapCDATA,
     hasProp = {}.hasOwnProperty;
 
-  builder = __webpack_require__(54);
+  builder = __webpack_require__(57);
 
-  defaults = __webpack_require__(52).defaults;
+  defaults = __webpack_require__(55).defaults;
 
   requiresCDATA = function(entry) {
     return typeof entry === "string" && (entry.indexOf('&') >= 0 || entry.indexOf('>') >= 0 || entry.indexOf('<') >= 0);
@@ -3942,28 +4429,28 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 54 */
+/* 57 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
 (function() {
   var NodeType, WriterState, XMLDOMImplementation, XMLDocument, XMLDocumentCB, XMLStreamWriter, XMLStringWriter, assign, isFunction, ref;
 
-  ref = __webpack_require__(55), assign = ref.assign, isFunction = ref.isFunction;
+  ref = __webpack_require__(58), assign = ref.assign, isFunction = ref.isFunction;
 
-  XMLDOMImplementation = __webpack_require__(56);
+  XMLDOMImplementation = __webpack_require__(59);
 
-  XMLDocument = __webpack_require__(57);
+  XMLDocument = __webpack_require__(60);
 
-  XMLDocumentCB = __webpack_require__(85);
+  XMLDocumentCB = __webpack_require__(88);
 
-  XMLStringWriter = __webpack_require__(82);
+  XMLStringWriter = __webpack_require__(85);
 
-  XMLStreamWriter = __webpack_require__(86);
+  XMLStreamWriter = __webpack_require__(89);
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  WriterState = __webpack_require__(84);
+  WriterState = __webpack_require__(87);
 
   module.exports.create = function(name, xmldec, doctype, options) {
     var doc, root;
@@ -4013,7 +4500,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 55 */
+/* 58 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4102,7 +4589,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 56 */
+/* 59 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4140,7 +4627,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 57 */
+/* 60 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4149,19 +4636,19 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isPlainObject = __webpack_require__(55).isPlainObject;
+  isPlainObject = __webpack_require__(58).isPlainObject;
 
-  XMLDOMImplementation = __webpack_require__(56);
+  XMLDOMImplementation = __webpack_require__(59);
 
-  XMLDOMConfiguration = __webpack_require__(58);
+  XMLDOMConfiguration = __webpack_require__(61);
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLStringifier = __webpack_require__(81);
+  XMLStringifier = __webpack_require__(84);
 
-  XMLStringWriter = __webpack_require__(82);
+  XMLStringWriter = __webpack_require__(85);
 
   module.exports = XMLDocument = (function(superClass) {
     extend(XMLDocument, superClass);
@@ -4388,16 +4875,16 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 58 */
+/* 61 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
 (function() {
   var XMLDOMConfiguration, XMLDOMErrorHandler, XMLDOMStringList;
 
-  XMLDOMErrorHandler = __webpack_require__(59);
+  XMLDOMErrorHandler = __webpack_require__(62);
 
-  XMLDOMStringList = __webpack_require__(60);
+  XMLDOMStringList = __webpack_require__(63);
 
   module.exports = XMLDOMConfiguration = (function() {
     function XMLDOMConfiguration() {
@@ -4458,7 +4945,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 59 */
+/* 62 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4480,7 +4967,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 60 */
+/* 63 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4514,7 +5001,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 61 */
+/* 64 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4522,7 +5009,7 @@ module.exports = require("fs");;
   var DocumentPosition, NodeType, XMLCData, XMLComment, XMLDeclaration, XMLDocType, XMLDummy, XMLElement, XMLNamedNodeMap, XMLNode, XMLNodeList, XMLProcessingInstruction, XMLRaw, XMLText, getValue, isEmpty, isFunction, isObject, ref1,
     hasProp = {}.hasOwnProperty;
 
-  ref1 = __webpack_require__(55), isObject = ref1.isObject, isFunction = ref1.isFunction, isEmpty = ref1.isEmpty, getValue = ref1.getValue;
+  ref1 = __webpack_require__(58), isObject = ref1.isObject, isFunction = ref1.isFunction, isEmpty = ref1.isEmpty, getValue = ref1.getValue;
 
   XMLElement = null;
 
@@ -4561,19 +5048,19 @@ module.exports = require("fs");;
       this.children = [];
       this.baseURI = null;
       if (!XMLElement) {
-        XMLElement = __webpack_require__(62);
-        XMLCData = __webpack_require__(66);
-        XMLComment = __webpack_require__(68);
-        XMLDeclaration = __webpack_require__(69);
-        XMLDocType = __webpack_require__(70);
-        XMLRaw = __webpack_require__(75);
-        XMLText = __webpack_require__(76);
-        XMLProcessingInstruction = __webpack_require__(77);
-        XMLDummy = __webpack_require__(78);
-        NodeType = __webpack_require__(63);
-        XMLNodeList = __webpack_require__(79);
-        XMLNamedNodeMap = __webpack_require__(65);
-        DocumentPosition = __webpack_require__(80);
+        XMLElement = __webpack_require__(65);
+        XMLCData = __webpack_require__(69);
+        XMLComment = __webpack_require__(71);
+        XMLDeclaration = __webpack_require__(72);
+        XMLDocType = __webpack_require__(73);
+        XMLRaw = __webpack_require__(78);
+        XMLText = __webpack_require__(79);
+        XMLProcessingInstruction = __webpack_require__(80);
+        XMLDummy = __webpack_require__(81);
+        NodeType = __webpack_require__(66);
+        XMLNodeList = __webpack_require__(82);
+        XMLNamedNodeMap = __webpack_require__(68);
+        DocumentPosition = __webpack_require__(83);
       }
     }
 
@@ -5305,7 +5792,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 62 */
+/* 65 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5314,15 +5801,15 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  ref = __webpack_require__(55), isObject = ref.isObject, isFunction = ref.isFunction, getValue = ref.getValue;
+  ref = __webpack_require__(58), isObject = ref.isObject, isFunction = ref.isFunction, getValue = ref.getValue;
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLAttribute = __webpack_require__(64);
+  XMLAttribute = __webpack_require__(67);
 
-  XMLNamedNodeMap = __webpack_require__(65);
+  XMLNamedNodeMap = __webpack_require__(68);
 
   module.exports = XMLElement = (function(superClass) {
     extend(XMLElement, superClass);
@@ -5609,7 +6096,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 63 */
+/* 66 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5638,16 +6125,16 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 64 */
+/* 67 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
 (function() {
   var NodeType, XMLAttribute, XMLNode;
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
   module.exports = XMLAttribute = (function() {
     function XMLAttribute(parent, name, value) {
@@ -5752,7 +6239,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 65 */
+/* 68 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5816,7 +6303,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 66 */
+/* 69 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5825,9 +6312,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLCharacterData = __webpack_require__(67);
+  XMLCharacterData = __webpack_require__(70);
 
   module.exports = XMLCData = (function(superClass) {
     extend(XMLCData, superClass);
@@ -5858,7 +6345,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 67 */
+/* 70 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5867,7 +6354,7 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
   module.exports = XMLCharacterData = (function(superClass) {
     extend(XMLCharacterData, superClass);
@@ -5943,7 +6430,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 68 */
+/* 71 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5952,9 +6439,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLCharacterData = __webpack_require__(67);
+  XMLCharacterData = __webpack_require__(70);
 
   module.exports = XMLComment = (function(superClass) {
     extend(XMLComment, superClass);
@@ -5985,7 +6472,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 69 */
+/* 72 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5994,11 +6481,11 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isObject = __webpack_require__(55).isObject;
+  isObject = __webpack_require__(58).isObject;
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
   module.exports = XMLDeclaration = (function(superClass) {
     extend(XMLDeclaration, superClass);
@@ -6034,7 +6521,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 70 */
+/* 73 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6043,21 +6530,21 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isObject = __webpack_require__(55).isObject;
+  isObject = __webpack_require__(58).isObject;
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLDTDAttList = __webpack_require__(71);
+  XMLDTDAttList = __webpack_require__(74);
 
-  XMLDTDEntity = __webpack_require__(72);
+  XMLDTDEntity = __webpack_require__(75);
 
-  XMLDTDElement = __webpack_require__(73);
+  XMLDTDElement = __webpack_require__(76);
 
-  XMLDTDNotation = __webpack_require__(74);
+  XMLDTDNotation = __webpack_require__(77);
 
-  XMLNamedNodeMap = __webpack_require__(65);
+  XMLNamedNodeMap = __webpack_require__(68);
 
   module.exports = XMLDocType = (function(superClass) {
     extend(XMLDocType, superClass);
@@ -6226,7 +6713,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 71 */
+/* 74 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6235,9 +6722,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
   module.exports = XMLDTDAttList = (function(superClass) {
     extend(XMLDTDAttList, superClass);
@@ -6287,7 +6774,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 72 */
+/* 75 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6296,11 +6783,11 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isObject = __webpack_require__(55).isObject;
+  isObject = __webpack_require__(58).isObject;
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
   module.exports = XMLDTDEntity = (function(superClass) {
     extend(XMLDTDEntity, superClass);
@@ -6390,7 +6877,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 73 */
+/* 76 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6399,9 +6886,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
   module.exports = XMLDTDElement = (function(superClass) {
     extend(XMLDTDElement, superClass);
@@ -6434,7 +6921,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 74 */
+/* 77 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6443,9 +6930,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
   module.exports = XMLDTDNotation = (function(superClass) {
     extend(XMLDTDNotation, superClass);
@@ -6492,7 +6979,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 75 */
+/* 78 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6501,9 +6988,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
   module.exports = XMLRaw = (function(superClass) {
     extend(XMLRaw, superClass);
@@ -6533,7 +7020,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 76 */
+/* 79 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6542,9 +7029,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLCharacterData = __webpack_require__(67);
+  XMLCharacterData = __webpack_require__(70);
 
   module.exports = XMLText = (function(superClass) {
     extend(XMLText, superClass);
@@ -6608,7 +7095,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 77 */
+/* 80 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6617,9 +7104,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLCharacterData = __webpack_require__(67);
+  XMLCharacterData = __webpack_require__(70);
 
   module.exports = XMLProcessingInstruction = (function(superClass) {
     extend(XMLProcessingInstruction, superClass);
@@ -6663,7 +7150,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 78 */
+/* 81 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6672,9 +7159,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(61);
+  XMLNode = __webpack_require__(64);
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
   module.exports = XMLDummy = (function(superClass) {
     extend(XMLDummy, superClass);
@@ -6700,7 +7187,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 79 */
+/* 82 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6734,7 +7221,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 80 */
+/* 83 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6752,7 +7239,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 81 */
+/* 84 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6998,7 +7485,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 82 */
+/* 85 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7007,7 +7494,7 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLWriterBase = __webpack_require__(83);
+  XMLWriterBase = __webpack_require__(86);
 
   module.exports = XMLStringWriter = (function(superClass) {
     extend(XMLStringWriter, superClass);
@@ -7039,7 +7526,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 83 */
+/* 86 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7047,37 +7534,37 @@ module.exports = require("fs");;
   var NodeType, WriterState, XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLDummy, XMLElement, XMLProcessingInstruction, XMLRaw, XMLText, XMLWriterBase, assign,
     hasProp = {}.hasOwnProperty;
 
-  assign = __webpack_require__(55).assign;
+  assign = __webpack_require__(58).assign;
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLDeclaration = __webpack_require__(69);
+  XMLDeclaration = __webpack_require__(72);
 
-  XMLDocType = __webpack_require__(70);
+  XMLDocType = __webpack_require__(73);
 
-  XMLCData = __webpack_require__(66);
+  XMLCData = __webpack_require__(69);
 
-  XMLComment = __webpack_require__(68);
+  XMLComment = __webpack_require__(71);
 
-  XMLElement = __webpack_require__(62);
+  XMLElement = __webpack_require__(65);
 
-  XMLRaw = __webpack_require__(75);
+  XMLRaw = __webpack_require__(78);
 
-  XMLText = __webpack_require__(76);
+  XMLText = __webpack_require__(79);
 
-  XMLProcessingInstruction = __webpack_require__(77);
+  XMLProcessingInstruction = __webpack_require__(80);
 
-  XMLDummy = __webpack_require__(78);
+  XMLDummy = __webpack_require__(81);
 
-  XMLDTDAttList = __webpack_require__(71);
+  XMLDTDAttList = __webpack_require__(74);
 
-  XMLDTDElement = __webpack_require__(73);
+  XMLDTDElement = __webpack_require__(76);
 
-  XMLDTDEntity = __webpack_require__(72);
+  XMLDTDEntity = __webpack_require__(75);
 
-  XMLDTDNotation = __webpack_require__(74);
+  XMLDTDNotation = __webpack_require__(77);
 
-  WriterState = __webpack_require__(84);
+  WriterState = __webpack_require__(87);
 
   module.exports = XMLWriterBase = (function() {
     function XMLWriterBase(options) {
@@ -7473,7 +7960,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 84 */
+/* 87 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7489,7 +7976,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 85 */
+/* 88 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7497,43 +7984,43 @@ module.exports = require("fs");;
   var NodeType, WriterState, XMLAttribute, XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLDocument, XMLDocumentCB, XMLElement, XMLProcessingInstruction, XMLRaw, XMLStringWriter, XMLStringifier, XMLText, getValue, isFunction, isObject, isPlainObject, ref,
     hasProp = {}.hasOwnProperty;
 
-  ref = __webpack_require__(55), isObject = ref.isObject, isFunction = ref.isFunction, isPlainObject = ref.isPlainObject, getValue = ref.getValue;
+  ref = __webpack_require__(58), isObject = ref.isObject, isFunction = ref.isFunction, isPlainObject = ref.isPlainObject, getValue = ref.getValue;
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLDocument = __webpack_require__(57);
+  XMLDocument = __webpack_require__(60);
 
-  XMLElement = __webpack_require__(62);
+  XMLElement = __webpack_require__(65);
 
-  XMLCData = __webpack_require__(66);
+  XMLCData = __webpack_require__(69);
 
-  XMLComment = __webpack_require__(68);
+  XMLComment = __webpack_require__(71);
 
-  XMLRaw = __webpack_require__(75);
+  XMLRaw = __webpack_require__(78);
 
-  XMLText = __webpack_require__(76);
+  XMLText = __webpack_require__(79);
 
-  XMLProcessingInstruction = __webpack_require__(77);
+  XMLProcessingInstruction = __webpack_require__(80);
 
-  XMLDeclaration = __webpack_require__(69);
+  XMLDeclaration = __webpack_require__(72);
 
-  XMLDocType = __webpack_require__(70);
+  XMLDocType = __webpack_require__(73);
 
-  XMLDTDAttList = __webpack_require__(71);
+  XMLDTDAttList = __webpack_require__(74);
 
-  XMLDTDEntity = __webpack_require__(72);
+  XMLDTDEntity = __webpack_require__(75);
 
-  XMLDTDElement = __webpack_require__(73);
+  XMLDTDElement = __webpack_require__(76);
 
-  XMLDTDNotation = __webpack_require__(74);
+  XMLDTDNotation = __webpack_require__(77);
 
-  XMLAttribute = __webpack_require__(64);
+  XMLAttribute = __webpack_require__(67);
 
-  XMLStringifier = __webpack_require__(81);
+  XMLStringifier = __webpack_require__(84);
 
-  XMLStringWriter = __webpack_require__(82);
+  XMLStringWriter = __webpack_require__(85);
 
-  WriterState = __webpack_require__(84);
+  WriterState = __webpack_require__(87);
 
   module.exports = XMLDocumentCB = (function() {
     function XMLDocumentCB(options, onData, onEnd) {
@@ -8023,7 +8510,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 86 */
+/* 89 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -8032,11 +8519,11 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(63);
+  NodeType = __webpack_require__(66);
 
-  XMLWriterBase = __webpack_require__(83);
+  XMLWriterBase = __webpack_require__(86);
 
-  WriterState = __webpack_require__(84);
+  WriterState = __webpack_require__(87);
 
   module.exports = XMLStreamWriter = (function(superClass) {
     extend(XMLStreamWriter, superClass);
@@ -8205,7 +8692,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 87 */
+/* 90 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -8216,17 +8703,17 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  sax = __webpack_require__(88);
+  sax = __webpack_require__(91);
 
-  events = __webpack_require__(90);
+  events = __webpack_require__(93);
 
-  bom = __webpack_require__(91);
+  bom = __webpack_require__(94);
 
-  processors = __webpack_require__(92);
+  processors = __webpack_require__(95);
 
-  setImmediate = __webpack_require__(93).setImmediate;
+  setImmediate = __webpack_require__(96).setImmediate;
 
-  defaults = __webpack_require__(52).defaults;
+  defaults = __webpack_require__(55).defaults;
 
   isEmpty = function(thing) {
     return typeof thing === "object" && (thing != null) && Object.keys(thing).length === 0;
@@ -8592,7 +9079,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 88 */
+/* 91 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 ;(function (sax) { // wrapper for non-node envs
@@ -8757,7 +9244,7 @@ module.exports = require("fs");;
 
   var Stream
   try {
-    Stream = __webpack_require__(29).Stream
+    Stream = __webpack_require__(31).Stream
   } catch (ex) {
     Stream = function () {}
   }
@@ -8827,7 +9314,7 @@ module.exports = require("fs");;
       typeof Buffer.isBuffer === 'function' &&
       Buffer.isBuffer(data)) {
       if (!this._decoder) {
-        var SD = __webpack_require__(89).StringDecoder
+        var SD = __webpack_require__(92).StringDecoder
         this._decoder = new SD('utf8')
       }
       data = this._decoder.write(data)
@@ -10163,21 +10650,21 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 89 */
+/* 92 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("string_decoder");;
 
 /***/ }),
-/* 90 */
+/* 93 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("events");;
 
 /***/ }),
-/* 91 */
+/* 94 */
 /***/ (function(__unused_webpack_module, exports) {
 
 // Generated by CoffeeScript 1.12.7
@@ -10195,7 +10682,7 @@ module.exports = require("events");;
 
 
 /***/ }),
-/* 92 */
+/* 95 */
 /***/ (function(__unused_webpack_module, exports) {
 
 // Generated by CoffeeScript 1.12.7
@@ -10235,14 +10722,14 @@ module.exports = require("events");;
 
 
 /***/ }),
-/* 93 */
+/* 96 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("timers");;
 
 /***/ }),
-/* 94 */
+/* 97 */
 /***/ ((module) => {
 
 var traverse = module.exports = function (obj) {
@@ -10562,431 +11049,45 @@ var hasOwnProperty = Object.hasOwnProperty || function (obj, key) {
 
 
 /***/ }),
-/* 95 */,
-/* 96 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-module.exports = __webpack_require__(97);
-
-/***/ }),
-/* 97 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var utils = __webpack_require__(98);
-var bind = __webpack_require__(5);
-var Axios = __webpack_require__(6);
-var mergeConfig = __webpack_require__(44);
-var defaults = __webpack_require__(12);
-
-/**
- * Create an instance of Axios
- *
- * @param {Object} defaultConfig The default config for the instance
- * @return {Axios} A new instance of Axios
- */
-function createInstance(defaultConfig) {
-  var context = new Axios(defaultConfig);
-  var instance = bind(Axios.prototype.request, context);
-
-  // Copy axios.prototype to instance
-  utils.extend(instance, Axios.prototype, context);
-
-  // Copy context to instance
-  utils.extend(instance, context);
-
-  return instance;
-}
-
-// Create the default instance to be exported
-var axios = createInstance(defaults);
-
-// Expose Axios class to allow class inheritance
-axios.Axios = Axios;
-
-// Factory for creating new instances
-axios.create = function create(instanceConfig) {
-  return createInstance(mergeConfig(axios.defaults, instanceConfig));
-};
-
-// Expose Cancel & CancelToken
-axios.Cancel = __webpack_require__(45);
-axios.CancelToken = __webpack_require__(46);
-axios.isCancel = __webpack_require__(11);
-
-// Expose all/spread
-axios.all = function all(promises) {
-  return Promise.all(promises);
-};
-axios.spread = __webpack_require__(47);
-
-// Expose isAxiosError
-axios.isAxiosError = __webpack_require__(48);
-
-module.exports = axios;
-
-// Allow use of default import syntax in TypeScript
-module.exports.default = axios;
-
-
-/***/ }),
 /* 98 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
-
-var bind = __webpack_require__(5);
-
-/*global toString:true*/
-
-// utils is a library of generic helper functions non-specific to axios
-
-var toString = Object.prototype.toString;
-
-/**
- * Determine if a value is an Array
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is an Array, otherwise false
- */
-function isArray(val) {
-  return toString.call(val) === '[object Array]';
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.multiplePomFinder = void 0;
+const vscode = __webpack_require__(1);
+var pomParser = __webpack_require__(52);
+function multiplePomFinder() {
+    var response = [];
+    vscode.workspace.findFiles('**/pom.xml').then(files => {
+        files.forEach(file => {
+            //open file 
+            // The required options, including the filePath.
+            // Other parsing options from https://github.com/Leonidas-from-XIV/node-xml2js#options
+            var opts = { filePath: file.fsPath }; // The path to a pom file
+            // Parse the pom based on a path
+            pomParser.parse(opts, function (err, pomResponse) {
+                if (err) {
+                    console.log("ERROR: " + err);
+                    process.exit(1);
+                }
+                // The original pom xml that was loaded is provided.
+                //console.log("XML: " + pomResponse.pomXml);
+                // The parsed pom pbject.
+                //var result = JSON.stringify(pomResponse.pomObject.project.dependencies.dependency);
+                pomResponse.pomObject.project.dependencies.dependency.forEach((key) => {
+                    const library = (key.groupid);
+                    response.push(library);
+                });
+                //storageManager.setValue(""+counter,response);
+                //View the pom parsed	
+            });
+        });
+    });
+    return response;
 }
-
-/**
- * Determine if a value is undefined
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if the value is undefined, otherwise false
- */
-function isUndefined(val) {
-  return typeof val === 'undefined';
-}
-
-/**
- * Determine if a value is a Buffer
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a Buffer, otherwise false
- */
-function isBuffer(val) {
-  return val !== null && !isUndefined(val) && val.constructor !== null && !isUndefined(val.constructor)
-    && typeof val.constructor.isBuffer === 'function' && val.constructor.isBuffer(val);
-}
-
-/**
- * Determine if a value is an ArrayBuffer
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is an ArrayBuffer, otherwise false
- */
-function isArrayBuffer(val) {
-  return toString.call(val) === '[object ArrayBuffer]';
-}
-
-/**
- * Determine if a value is a FormData
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is an FormData, otherwise false
- */
-function isFormData(val) {
-  return (typeof FormData !== 'undefined') && (val instanceof FormData);
-}
-
-/**
- * Determine if a value is a view on an ArrayBuffer
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a view on an ArrayBuffer, otherwise false
- */
-function isArrayBufferView(val) {
-  var result;
-  if ((typeof ArrayBuffer !== 'undefined') && (ArrayBuffer.isView)) {
-    result = ArrayBuffer.isView(val);
-  } else {
-    result = (val) && (val.buffer) && (val.buffer instanceof ArrayBuffer);
-  }
-  return result;
-}
-
-/**
- * Determine if a value is a String
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a String, otherwise false
- */
-function isString(val) {
-  return typeof val === 'string';
-}
-
-/**
- * Determine if a value is a Number
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a Number, otherwise false
- */
-function isNumber(val) {
-  return typeof val === 'number';
-}
-
-/**
- * Determine if a value is an Object
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is an Object, otherwise false
- */
-function isObject(val) {
-  return val !== null && typeof val === 'object';
-}
-
-/**
- * Determine if a value is a plain Object
- *
- * @param {Object} val The value to test
- * @return {boolean} True if value is a plain Object, otherwise false
- */
-function isPlainObject(val) {
-  if (toString.call(val) !== '[object Object]') {
-    return false;
-  }
-
-  var prototype = Object.getPrototypeOf(val);
-  return prototype === null || prototype === Object.prototype;
-}
-
-/**
- * Determine if a value is a Date
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a Date, otherwise false
- */
-function isDate(val) {
-  return toString.call(val) === '[object Date]';
-}
-
-/**
- * Determine if a value is a File
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a File, otherwise false
- */
-function isFile(val) {
-  return toString.call(val) === '[object File]';
-}
-
-/**
- * Determine if a value is a Blob
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a Blob, otherwise false
- */
-function isBlob(val) {
-  return toString.call(val) === '[object Blob]';
-}
-
-/**
- * Determine if a value is a Function
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a Function, otherwise false
- */
-function isFunction(val) {
-  return toString.call(val) === '[object Function]';
-}
-
-/**
- * Determine if a value is a Stream
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a Stream, otherwise false
- */
-function isStream(val) {
-  return isObject(val) && isFunction(val.pipe);
-}
-
-/**
- * Determine if a value is a URLSearchParams object
- *
- * @param {Object} val The value to test
- * @returns {boolean} True if value is a URLSearchParams object, otherwise false
- */
-function isURLSearchParams(val) {
-  return typeof URLSearchParams !== 'undefined' && val instanceof URLSearchParams;
-}
-
-/**
- * Trim excess whitespace off the beginning and end of a string
- *
- * @param {String} str The String to trim
- * @returns {String} The String freed of excess whitespace
- */
-function trim(str) {
-  return str.replace(/^\s*/, '').replace(/\s*$/, '');
-}
-
-/**
- * Determine if we're running in a standard browser environment
- *
- * This allows axios to run in a web worker, and react-native.
- * Both environments support XMLHttpRequest, but not fully standard globals.
- *
- * web workers:
- *  typeof window -> undefined
- *  typeof document -> undefined
- *
- * react-native:
- *  navigator.product -> 'ReactNative'
- * nativescript
- *  navigator.product -> 'NativeScript' or 'NS'
- */
-function isStandardBrowserEnv() {
-  if (typeof navigator !== 'undefined' && (navigator.product === 'ReactNative' ||
-                                           navigator.product === 'NativeScript' ||
-                                           navigator.product === 'NS')) {
-    return false;
-  }
-  return (
-    typeof window !== 'undefined' &&
-    typeof document !== 'undefined'
-  );
-}
-
-/**
- * Iterate over an Array or an Object invoking a function for each item.
- *
- * If `obj` is an Array callback will be called passing
- * the value, index, and complete array for each item.
- *
- * If 'obj' is an Object callback will be called passing
- * the value, key, and complete object for each property.
- *
- * @param {Object|Array} obj The object to iterate
- * @param {Function} fn The callback to invoke for each item
- */
-function forEach(obj, fn) {
-  // Don't bother if no value provided
-  if (obj === null || typeof obj === 'undefined') {
-    return;
-  }
-
-  // Force an array if not already something iterable
-  if (typeof obj !== 'object') {
-    /*eslint no-param-reassign:0*/
-    obj = [obj];
-  }
-
-  if (isArray(obj)) {
-    // Iterate over array values
-    for (var i = 0, l = obj.length; i < l; i++) {
-      fn.call(null, obj[i], i, obj);
-    }
-  } else {
-    // Iterate over object keys
-    for (var key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        fn.call(null, obj[key], key, obj);
-      }
-    }
-  }
-}
-
-/**
- * Accepts varargs expecting each argument to be an object, then
- * immutably merges the properties of each object and returns result.
- *
- * When multiple objects contain the same key the later object in
- * the arguments list will take precedence.
- *
- * Example:
- *
- * ```js
- * var result = merge({foo: 123}, {foo: 456});
- * console.log(result.foo); // outputs 456
- * ```
- *
- * @param {Object} obj1 Object to merge
- * @returns {Object} Result of all merge properties
- */
-function merge(/* obj1, obj2, obj3, ... */) {
-  var result = {};
-  function assignValue(val, key) {
-    if (isPlainObject(result[key]) && isPlainObject(val)) {
-      result[key] = merge(result[key], val);
-    } else if (isPlainObject(val)) {
-      result[key] = merge({}, val);
-    } else if (isArray(val)) {
-      result[key] = val.slice();
-    } else {
-      result[key] = val;
-    }
-  }
-
-  for (var i = 0, l = arguments.length; i < l; i++) {
-    forEach(arguments[i], assignValue);
-  }
-  return result;
-}
-
-/**
- * Extends object a by mutably adding to it the properties of object b.
- *
- * @param {Object} a The object to be extended
- * @param {Object} b The object to copy properties from
- * @param {Object} thisArg The object to bind function to
- * @return {Object} The resulting value of object a
- */
-function extend(a, b, thisArg) {
-  forEach(b, function assignValue(val, key) {
-    if (thisArg && typeof val === 'function') {
-      a[key] = bind(val, thisArg);
-    } else {
-      a[key] = val;
-    }
-  });
-  return a;
-}
-
-/**
- * Remove byte order marker. This catches EF BB BF (the UTF-8 BOM)
- *
- * @param {string} content with BOM
- * @return {string} content value without BOM
- */
-function stripBOM(content) {
-  if (content.charCodeAt(0) === 0xFEFF) {
-    content = content.slice(1);
-  }
-  return content;
-}
-
-module.exports = {
-  isArray: isArray,
-  isArrayBuffer: isArrayBuffer,
-  isBuffer: isBuffer,
-  isFormData: isFormData,
-  isArrayBufferView: isArrayBufferView,
-  isString: isString,
-  isNumber: isNumber,
-  isObject: isObject,
-  isPlainObject: isPlainObject,
-  isUndefined: isUndefined,
-  isDate: isDate,
-  isFile: isFile,
-  isBlob: isBlob,
-  isFunction: isFunction,
-  isStream: isStream,
-  isURLSearchParams: isURLSearchParams,
-  isStandardBrowserEnv: isStandardBrowserEnv,
-  forEach: forEach,
-  merge: merge,
-  extend: extend,
-  trim: trim,
-  stripBOM: stripBOM
-};
+exports.multiplePomFinder = multiplePomFinder;
 
 
 /***/ })
