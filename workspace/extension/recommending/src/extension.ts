@@ -8,6 +8,7 @@ import { LocalStorage } from './storage/LocalStorage';
 import { callSinglePom } from './service/request';
 import {multiplePomFinder} from './utils/pomFinder';
 import { reccomendListUI } from './utils/uiComponent';
+import { Lib } from './model/lib';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
@@ -33,7 +34,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	// This command activate the raccomand system for more pom
 	let pomGetter = vscode.commands.registerCommand('Getting.pom', () => {
-		getPom(context,storageManager);
+		procedureRecommend(context,storageManager);
 	})
 
 	//Subscribe the command
@@ -50,15 +51,15 @@ export function deactivate() { }
 
 // This function find the pom on the VSCode Workspace
 // and parse the pom 
-function getPom(context: vscode.ExtensionContext, storageManager: LocalStorage) {	
+function procedureRecommend(context: vscode.ExtensionContext, storageManager: LocalStorage) {	
 	
-	let obj = {lib: multiplePomFinder()}
+	let obj = new Lib(multiplePomFinder());
 	let getRecommend = async () => {
 		var a = await callSinglePom(obj);
 		console.log(a?.data.score);
+		//reccomendListUI(a?.data.score,multiplePomFinder());
 	};
 	getRecommend();
-	reccomendListUI();
 		
 }
 
