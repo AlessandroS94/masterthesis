@@ -9,6 +9,8 @@ import { callSinglePom } from './service/request';
 import {multiplePomFinder} from './utils/pomFinder';
 import { reccomendListUI } from './utils/uiComponent';
 import { Lib } from './model/lib';
+import { AxiosResponse } from 'axios';
+import { toString } from 'lodash';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
@@ -17,9 +19,8 @@ export async function activate(context: vscode.ExtensionContext) {
 	//Start the extension
 	console.log('"Recommending" is now active!');
 	
+	// Start the local storage for this workspace
 	let storageManager = new LocalStorage(context.globalState);
-
-
 
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with registerCommand
@@ -52,14 +53,19 @@ export function deactivate() { }
 // This function find the pom on the VSCode Workspace
 // and parse the pom 
 function procedureRecommend(context: vscode.ExtensionContext, storageManager: LocalStorage) {	
+	let cachedData: void | AxiosResponse<any> | null = null;
+	// create the object of the parsed POM 
+	const libPom = new Lib(multiplePomFinder());
 	
-	let obj = new Lib(multiplePomFinder());
-	let getRecommend = async () => {
-		var a = await callSinglePom(obj);
-		console.log(a?.data.score);
-		//reccomendListUI(a?.data.score,multiplePomFinder());
+	// Recive and view the racommend data
+	let getRecommend = async (libPom:any) => {
+		// Data of the racommend call
+		var a = await callSinglePom(libPom);
+		//console.log(a?.data.score);
+		let libRac =  a?.data.score;
+		reccomendListUI(libRac, libPom);
 	};
-	getRecommend();
+	getRecommend(libPom);
 		
 }
 

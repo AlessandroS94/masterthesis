@@ -22,8 +22,9 @@ exports.deactivate = exports.activate = void 0;
 const vscode = __webpack_require__(1);
 const LocalStorage_1 = __webpack_require__(2);
 const request_1 = __webpack_require__(3);
-const pomFinder_1 = __webpack_require__(98);
-const lib_1 = __webpack_require__(51);
+const pomFinder_1 = __webpack_require__(51);
+const uiComponent_1 = __webpack_require__(98);
+const lib_1 = __webpack_require__(101);
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -31,6 +32,7 @@ function activate(context) {
         // This line of code will only be executed once when your extension is activated
         //Start the extension
         console.log('"Recommending" is now active!');
+        // Start the local storage for this workspace
         let storageManager = new LocalStorage_1.LocalStorage(context.globalState);
         // The command has been defined in the package.json file
         // Now provide the implementation of the command with registerCommand
@@ -56,13 +58,18 @@ exports.deactivate = deactivate;
 // This function find the pom on the VSCode Workspace
 // and parse the pom 
 function procedureRecommend(context, storageManager) {
-    let obj = new lib_1.Lib(pomFinder_1.multiplePomFinder());
-    let getRecommend = () => __awaiter(this, void 0, void 0, function* () {
-        var a = yield request_1.callSinglePom(obj);
-        console.log(a === null || a === void 0 ? void 0 : a.data.score);
-        //reccomendListUI(a?.data.score,multiplePomFinder());
+    let cachedData = null;
+    // create the object of the parsed POM 
+    const libPom = new lib_1.Lib(pomFinder_1.multiplePomFinder());
+    // Recive and view the racommend data
+    let getRecommend = (libPom) => __awaiter(this, void 0, void 0, function* () {
+        // Data of the racommend call
+        var a = yield request_1.callSinglePom(libPom);
+        //console.log(a?.data.score);
+        let libRac = a === null || a === void 0 ? void 0 : a.data.score;
+        uiComponent_1.reccomendListUI(libRac, libPom);
     });
-    getRecommend();
+    getRecommend(libPom);
 }
 
 
@@ -115,20 +122,20 @@ exports.callSinglePom = void 0;
 const axios_1 = __webpack_require__(4);
 // URL to connect for POM recommend
 const URL_BASIC_RECCOMEND = "http://192.168.1.105:5000/recommend";
-/*
 let alreadyFetched = false;
-let cachedData: void | AxiosResponse<any> | null = null;
-*/
+let cachedData = null;
 function callSinglePom(obj) {
     return __awaiter(this, void 0, void 0, function* () {
         // check if data was fetch already (to avoid same request multiple times)
         // if so, return previous fetched data
-        // if (alreadyFetched) return cachedData;
+        if (alreadyFetched) {
+            return cachedData;
+        }
         // else fetch data
         let data = yield axios_1.default.post(URL_BASIC_RECCOMEND, obj).catch((e) => console.log(e)); // This is optional (use try/catch if you still want)
         // set variables
-        // alreadyFetched = true;
-        // cachedData = data;
+        alreadyFetched = true;
+        cachedData = data;
         return data;
     });
 }
@@ -3953,24 +3960,44 @@ module.exports = function isAxiosError(payload) {
 
 /***/ }),
 /* 51 */
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Lib = void 0;
-class Lib {
-    constructor(lib) {
-        this.lib = lib;
-    }
-    getLib() {
-        return this.lib;
-    }
-    setLib(lib) {
-        this.lib = lib;
-    }
+exports.multiplePomFinder = void 0;
+const vscode = __webpack_require__(1);
+var pomParser = __webpack_require__(52);
+function multiplePomFinder() {
+    var response = [];
+    vscode.workspace.findFiles('**/pom.xml').then(files => {
+        files.forEach(file => {
+            //open file 
+            // The required options, including the filePath.
+            // Other parsing options from https://github.com/Leonidas-from-XIV/node-xml2js#options
+            var opts = { filePath: file.fsPath }; // The path to a pom file
+            // Parse the pom based on a path
+            pomParser.parse(opts, function (err, pomResponse) {
+                if (err) {
+                    console.log("ERROR: " + err);
+                    process.exit(1);
+                }
+                // The original pom xml that was loaded is provided.
+                //console.log("XML: " + pomResponse.pomXml);
+                // The parsed pom pbject.
+                //var result = JSON.stringify(pomResponse.pomObject.project.dependencies.dependency);
+                pomResponse.pomObject.project.dependencies.dependency.forEach((key) => {
+                    const library = (key.groupid);
+                    response.push(library);
+                });
+                //storageManager.setValue(""+counter,response);
+                //View the pom parsed	
+            });
+        });
+    });
+    return response;
 }
-exports.Lib = Lib;
+exports.multiplePomFinder = multiplePomFinder;
 
 
 /***/ }),
@@ -10977,39 +11004,131 @@ var hasOwnProperty = Object.hasOwnProperty || function (obj, key) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.multiplePomFinder = void 0;
+exports.reccomendListUI = void 0;
 const vscode = __webpack_require__(1);
-var pomParser = __webpack_require__(52);
-function multiplePomFinder() {
-    var response = [];
-    vscode.workspace.findFiles('**/pom.xml').then(files => {
-        files.forEach(file => {
-            //open file 
-            // The required options, including the filePath.
-            // Other parsing options from https://github.com/Leonidas-from-XIV/node-xml2js#options
-            var opts = { filePath: file.fsPath }; // The path to a pom file
-            // Parse the pom based on a path
-            pomParser.parse(opts, function (err, pomResponse) {
-                if (err) {
-                    console.log("ERROR: " + err);
-                    process.exit(1);
-                }
-                // The original pom xml that was loaded is provided.
-                //console.log("XML: " + pomResponse.pomXml);
-                // The parsed pom pbject.
-                //var result = JSON.stringify(pomResponse.pomObject.project.dependencies.dependency);
-                pomResponse.pomObject.project.dependencies.dependency.forEach((key) => {
-                    const library = (key.groupid);
-                    response.push(library);
-                });
-                //storageManager.setValue(""+counter,response);
-                //View the pom parsed	
-            });
-        });
-    });
-    return response;
+const listComponent_1 = __webpack_require__(99);
+function reccomendListUI(libRac, libPom) {
+    const panel = vscode.window.createWebviewPanel('Rac', 'Racommander', vscode.ViewColumn.One, {});
+    // And set its HTML content
+    panel.webview.html = listComponent_1.getWebviewContent(libRac, libPom);
 }
-exports.multiplePomFinder = multiplePomFinder;
+exports.reccomendListUI = reccomendListUI;
+
+
+/***/ }),
+/* 99 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getWebviewContent = void 0;
+function getWebviewContent(libRac, libPom) {
+    return ` 
+  <!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+  <title>Hello, world!</title>
+</head>
+
+<body>
+  <br>
+  <nav class="navbar navbar-dark bg-dark">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="#">&nbsp;Library Pom Racommand <span class="sr-only"></span></a>
+      </li>
+    </ul>
+  </nav>
+  <br>
+
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Library Racommand</h5>
+      <div class="card-body">
+        <h5 class="card-title">Library</h5>
+        <ul class="list-group list-group-flush">
+          ` + deserializerRac(libRac) + `
+        </ul>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <div class="d-grid gap-2">
+    <button class="btn btn-primary" type="button">COMPLETE ADDING </button>
+  </div>
+  <hr>
+  <br>
+  <!-- Optional JavaScript; choose one of the two! -->
+
+  <!-- Option 1: Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+    crossorigin="anonymous"></script>
+
+  <!-- Option 2: Separate Popper and Bootstrap JS -->
+  <!--
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script>
+        -->
+</body>
+
+</html>
+  `;
+}
+exports.getWebviewContent = getWebviewContent;
+/* function deserializer(libPom: any):any{
+  const pretag='<li class="list-group-item">';
+  const posttag='</>';
+  let result ='';
+  libPom.lib?.forEach((element: any) => {
+    result = result + pretag + element + posttag;
+    //console.log(element);
+  });
+return result;
+} */
+function deserializerRac(libRac) {
+    const pretag = '<li class="list-group-item">';
+    const posttag = '&nbsp;&nbsp; <button class="btn btn-primary btn-sm" type="submit"> ADD </button> </li>';
+    let result = '';
+    libRac.forEach((element) => {
+        result = result + pretag + element + posttag;
+        //console.log(element);
+    });
+    return result;
+}
+
+
+/***/ }),
+/* 100 */,
+/* 101 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Lib = void 0;
+class Lib {
+    constructor(lib) {
+        this.lib = lib;
+    }
+    getLib() {
+        return this.lib;
+    }
+    setLib(lib) {
+        this.lib = lib;
+    }
+}
+exports.Lib = Lib;
 
 
 /***/ })

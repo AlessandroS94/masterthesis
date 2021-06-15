@@ -30,7 +30,7 @@ export function multiplePomFinder(): String[] {
                 //storageManager.setValue(""+counter,response);
                 //View the pom parsed	
             });
-        })
+        });
     });
     return response;
 }
