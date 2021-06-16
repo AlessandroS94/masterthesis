@@ -58,7 +58,6 @@ exports.deactivate = deactivate;
 // This function find the pom on the VSCode Workspace
 // and parse the pom 
 function procedureRecommend(context, storageManager) {
-    let cachedData = null;
     // create the object of the parsed POM 
     const libPom = new lib_1.Lib(pomFinder_1.multiplePomFinder());
     // Recive and view the racommend data
@@ -67,7 +66,7 @@ function procedureRecommend(context, storageManager) {
         var a = yield request_1.callSinglePom(libPom);
         //console.log(a?.data.score);
         let libRac = a === null || a === void 0 ? void 0 : a.data.score;
-        uiComponent_1.reccomendListUI(libRac, libPom);
+        uiComponent_1.reccomendListUI(libRac, context);
     });
     getRecommend(libPom);
 }
@@ -11007,10 +11006,19 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.reccomendListUI = void 0;
 const vscode = __webpack_require__(1);
 const listComponent_1 = __webpack_require__(99);
-function reccomendListUI(libRac, libPom) {
-    const panel = vscode.window.createWebviewPanel('Rac', 'Racommander', vscode.ViewColumn.One, {});
+function reccomendListUI(libRac, context) {
+    const panel = vscode.window.createWebviewPanel('Rac', 'Racommander', vscode.ViewColumn.One, {
+        enableScripts: true
+    });
     // And set its HTML content
-    panel.webview.html = listComponent_1.getWebviewContent(libRac, libPom);
+    panel.webview.html = listComponent_1.getWebviewContent(libRac);
+    panel.webview.onDidReceiveMessage(message => {
+        switch (message.command) {
+            case 'alert':
+                vscode.window.showErrorMessage(message.text);
+                return;
+        }
+    }, undefined, context.subscriptions);
 }
 exports.reccomendListUI = reccomendListUI;
 
@@ -11023,7 +11031,7 @@ exports.reccomendListUI = reccomendListUI;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getWebviewContent = void 0;
-function getWebviewContent(libRac, libPom) {
+function getWebviewContent(libRac) {
     return ` 
   <!doctype html>
 <html lang="en">
@@ -11041,6 +11049,8 @@ function getWebviewContent(libRac, libPom) {
 </head>
 
 <body>
+<img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
+    <h1 id="lines-of-code-counter">0</h1>
   <br>
   <nav class="navbar navbar-dark bg-dark">
     <ul class="navbar-nav mr-auto">
@@ -11077,30 +11087,40 @@ function getWebviewContent(libRac, libPom) {
 
   <!-- Option 2: Separate Popper and Bootstrap JS -->
   <!--
+        <script type="text/javascript" src="vscodeTest.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script>
         -->
+        <script>
+        (function() {
+            const vscode = acquireVsCodeApi();
+            const counter = document.getElementById('lines-of-code-counter');
+
+            let count = 0;
+            setInterval(() => {
+                counter.textContent = count++;
+
+                // Alert the extension when our cat introduces a bug
+                if (Math.random() < 0.001 * count) {
+                    vscode.postMessage({
+                        command: 'alert',
+                        text: '🐛  on line ' + count
+                    })
+                }
+            }, 100);
+        }())
+    </script>
 </body>
 
 </html>
   `;
 }
 exports.getWebviewContent = getWebviewContent;
-/* function deserializer(libPom: any):any{
-  const pretag='<li class="list-group-item">';
-  const posttag='</>';
-  let result ='';
-  libPom.lib?.forEach((element: any) => {
-    result = result + pretag + element + posttag;
-    //console.log(element);
-  });
-return result;
-} */
 function deserializerRac(libRac) {
     const pretag = '<li class="list-group-item">';
-    const posttag = '&nbsp;&nbsp; <button class="btn btn-primary btn-sm" type="submit"> ADD </button> </li>';
     let result = '';
     libRac.forEach((element) => {
+        const posttag = '&nbsp;&nbsp; <button class="btn btn-primary btn-sm" id="' + element + '" value=type="button"> ADD </button> </li>';
         result = result + pretag + element + posttag;
         //console.log(element);
     });

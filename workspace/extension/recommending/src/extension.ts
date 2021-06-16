@@ -53,7 +53,7 @@ export function deactivate() { }
 // This function find the pom on the VSCode Workspace
 // and parse the pom 
 function procedureRecommend(context: vscode.ExtensionContext, storageManager: LocalStorage) {	
-	let cachedData: void | AxiosResponse<any> | null = null;
+	
 	// create the object of the parsed POM 
 	const libPom = new Lib(multiplePomFinder());
 	
@@ -63,9 +63,7 @@ function procedureRecommend(context: vscode.ExtensionContext, storageManager: Lo
 		var a = await callSinglePom(libPom);
 		//console.log(a?.data.score);
 		let libRac =  a?.data.score;
-		reccomendListUI(libRac, libPom);
+		reccomendListUI(libRac, context);
 	};
 	getRecommend(libPom);
-		
 }
-
