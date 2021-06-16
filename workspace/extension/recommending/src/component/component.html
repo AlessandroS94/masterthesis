@@ -1,9 +1,4 @@
-'use strict';
-
-export function getWebviewContent(libRac: any[]) {
-  
-  return ` 
-  <!doctype html>
+<!doctype html>
 <html lang="en">
 
 <head>
@@ -70,18 +65,3 @@ export function getWebviewContent(libRac: any[]) {
 </body>
 
 </html>
-  `;
-}
-
-function deserializerRac(libRac: any):any{
-  let result = '';
-  libRac.forEach((element: any) => {
-    const posttag='&nbsp;&nbsp;'+
-    '<div class="form-check"><input class="form-check-input" type="checkbox" name=lib value="'+element+'" id="flexCheckChecked"'+
-    '<label class="form-check-label" for="flexCheckChecked">'+element+
-    '</label></div>';
-    result = result + posttag;
-    //console.log(element);
-  });
-return result;
-}

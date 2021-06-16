@@ -24,7 +24,7 @@ const LocalStorage_1 = __webpack_require__(2);
 const request_1 = __webpack_require__(3);
 const pomFinder_1 = __webpack_require__(51);
 const uiComponent_1 = __webpack_require__(98);
-const lib_1 = __webpack_require__(101);
+const lib_1 = __webpack_require__(100);
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -11012,10 +11012,11 @@ function reccomendListUI(libRac, context) {
     });
     // And set its HTML content
     panel.webview.html = listComponent_1.getWebviewContent(libRac);
+    //recive the message by webview script
     panel.webview.onDidReceiveMessage(message => {
         switch (message.command) {
             case 'alert':
-                vscode.window.showErrorMessage(message.text);
+                vscode.window.showInformationMessage(message.text[0]);
                 return;
         }
     }, undefined, context.subscriptions);
@@ -11045,13 +11046,10 @@ function getWebviewContent(libRac) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
 
-  <title>Hello, world!</title>
+  <title>Library</title>
 </head>
 
 <body>
-<img src="https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif" width="300" />
-    <h1 id="lines-of-code-counter">0</h1>
-  <br>
   <nav class="navbar navbar-dark bg-dark">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
@@ -11066,50 +11064,40 @@ function getWebviewContent(libRac) {
       <h5 class="card-title">Library Racommand</h5>
       <div class="card-body">
         <h5 class="card-title">Library</h5>
-        <ul class="list-group list-group-flush">
+        <form name="LibRacommand">
           ` + deserializerRac(libRac) + `
-        </ul>
+        </form>
       </div>
     </div>
   </div>
   <hr>
   <div class="d-grid gap-2">
-    <button class="btn btn-primary" type="button">COMPLETE ADDING </button>
+    <button class="btn btn-primary" id='action' type="button"> COMPLETE ADDING </button>
   </div>
   <hr>
   <br>
-  <!-- Optional JavaScript; choose one of the two! -->
+  <script>
 
+    const button = document.getElementById('action');
+    button.addEventListener("click", () => { act() });
+    function act() {
+      const vscode = acquireVsCodeApi();
+      let x = document.getElementsByName("lib");
+      let res = [];
+      x.forEach(element => {
+        if (element.checked) { res.push(element.value); }
+      });
+      vscode.postMessage({
+        command: 'alert',
+        text: res
+      });
+    }
+  </script>
   <!-- Option 1: Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
     crossorigin="anonymous"></script>
-
-  <!-- Option 2: Separate Popper and Bootstrap JS -->
-  <!--
-        <script type="text/javascript" src="vscodeTest.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.min.js" integrity="sha384-Atwg2Pkwv9vp0ygtn1JAojH0nYbwNJLPhwyoVbhoPwBhjQPR5VtM2+xf0Uwh9KtT" crossorigin="anonymous"></script>
-        -->
-        <script>
-        (function() {
-            const vscode = acquireVsCodeApi();
-            const counter = document.getElementById('lines-of-code-counter');
-
-            let count = 0;
-            setInterval(() => {
-                counter.textContent = count++;
-
-                // Alert the extension when our cat introduces a bug
-                if (Math.random() < 0.001 * count) {
-                    vscode.postMessage({
-                        command: 'alert',
-                        text: '🐛  on line ' + count
-                    })
-                }
-            }, 100);
-        }())
-    </script>
+  <!-- Script fot VsCode Comunication -->
 </body>
 
 </html>
@@ -11117,11 +11105,13 @@ function getWebviewContent(libRac) {
 }
 exports.getWebviewContent = getWebviewContent;
 function deserializerRac(libRac) {
-    const pretag = '<li class="list-group-item">';
     let result = '';
     libRac.forEach((element) => {
-        const posttag = '&nbsp;&nbsp; <button class="btn btn-primary btn-sm" id="' + element + '" value=type="button"> ADD </button> </li>';
-        result = result + pretag + element + posttag;
+        const posttag = '&nbsp;&nbsp;' +
+            '<div class="form-check"><input class="form-check-input" type="checkbox" name=lib value="' + element + '" id="flexCheckChecked"' +
+            '<label class="form-check-label" for="flexCheckChecked">' + element +
+            '</label></div>';
+        result = result + posttag;
         //console.log(element);
     });
     return result;
@@ -11129,8 +11119,7 @@ function deserializerRac(libRac) {
 
 
 /***/ }),
-/* 100 */,
-/* 101 */
+/* 100 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";

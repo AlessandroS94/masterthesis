@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 import { getWebviewContent } from '../component/listComponent';
 import { Lib } from '../model/lib';
 import { LocalStorage } from '../storage/LocalStorage';
-import { Base64 } from 'js-base64';
 import { writeFile } from 'fs';
 
 export function reccomendListUI(libRac: any[],context: vscode.ExtensionContext) {
@@ -18,17 +17,21 @@ export function reccomendListUI(libRac: any[],context: vscode.ExtensionContext) 
 
     // And set its HTML content
     panel.webview.html = getWebviewContent(libRac);
+
+    //recive the message by webview script
     panel.webview.onDidReceiveMessage(
-        message => {
-          switch (message.command) {
-            case 'alert':
-              vscode.window.showErrorMessage(message.text);
-              return;
-          }
-        },
-        undefined,
-        context.subscriptions
-      );
+      message => {
+        switch (message.command) {
+          case 'alert':
+            
+            vscode.window.showInformationMessage(message.text[0]);
+            
+            return;
+        }
+      },
+      undefined,
+      context.subscriptions
+    );
 }
 
 
