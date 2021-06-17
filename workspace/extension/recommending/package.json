@@ -11,7 +11,8 @@
   ],
   "activationEvents": [
     "onCommand:recommending.start",
-    "onCommand:Getting.pom"
+    "onCommand:Getting.pom",
+    "onCommand:addPom.pom"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -23,6 +24,10 @@
       {
         "command": "Getting.pom",
         "title": "Getting pom"
+      },
+      {
+        "command": "addPom.pom",
+        "title": "Add to Pom"
       }
     ]
   },
@@ -44,6 +49,7 @@
     "@types/mocha": "^8.0.4",
     "@types/node": "^12.11.7",
     "@types/vscode": "^1.56.0",
+    "@types/xml-zero-lexer": "^2.1.0",
     "@typescript-eslint/eslint-plugin": "^4.14.1",
     "@typescript-eslint/parser": "^4.14.1",
     "eslint": "^7.19.0",
@@ -58,7 +64,8 @@
   "dependencies": {
     "axios": "^0.21.1",
     "fs-extra": "^4.0.3",
+    "js-base64": "^3.6.0",
     "pom-parser": "^1.2.0",
-    "js-base64": "^3.6.0"
+    "xml-zero-lexer": "^2.1.0"
   }
 }
