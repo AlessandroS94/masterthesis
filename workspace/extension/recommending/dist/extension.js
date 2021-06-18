@@ -21,9 +21,9 @@ exports.deactivate = exports.activate = void 0;
 // Import the library for the extension
 const vscode = __webpack_require__(1);
 const LocalStorage_1 = __webpack_require__(2);
-const request_1 = __webpack_require__(3);
-const pomFinder_1 = __webpack_require__(51);
-const uiComponent_1 = __webpack_require__(98);
+const recommendService_1 = __webpack_require__(3);
+const multipleDependenciesFinder_1 = __webpack_require__(51);
+const recomendListUI_1 = __webpack_require__(98);
 const lib_1 = __webpack_require__(100);
 const pomAddingLibrary_1 = __webpack_require__(101);
 // this method is called when your extension is activated
@@ -61,6 +61,7 @@ function activate(context) {
         //Subscribe the command
         context.subscriptions.push(disposable);
         context.subscriptions.push(pomGetter);
+        context.subscriptions.push(addToPom);
     });
 }
 exports.activate = activate;
@@ -71,16 +72,18 @@ exports.deactivate = deactivate;
 // and parse the pom 
 function procedureRecommend(context, storageManager) {
     // create the object of the parsed POM 
-    const libPom = new lib_1.Lib(pomFinder_1.multiplePomFinder());
+    const libPom = new lib_1.Lib(multipleDependenciesFinder_1.multipleDependenciesFinder());
     // Recive and view the racommend data
     let getRecommend = (libPom) => __awaiter(this, void 0, void 0, function* () {
         // Data of the racommend call
-        var a = yield request_1.callSinglePom(libPom);
+        let raccomand = yield recommendService_1.callSinglePom(libPom);
         //console.log(a?.data.score);
-        let libRac = a === null || a === void 0 ? void 0 : a.data.score;
+        let libRac = raccomand === null || raccomand === void 0 ? void 0 : raccomand.data.score;
         // open the page to select the recommend lib 
-        uiComponent_1.reccomendListUI(libRac, context);
+        recomendListUI_1.reccomendListUI(libRac, context, storageManager);
+        //printDependency(storageManager.getValue('recommendLib'));
     });
+    //storageManager.setValue('recomend_lib',[]);
     getRecommend(libPom);
 }
 
@@ -132,12 +135,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.callSinglePom = void 0;
 const axios_1 = __webpack_require__(4);
-// URL to connect for POM recommend
-const URL_BASIC_RECCOMEND = "http://192.168.1.105:5000/recommend";
-let alreadyFetched = false;
-let cachedData = null;
 function callSinglePom(obj) {
     return __awaiter(this, void 0, void 0, function* () {
+        // URL to connect for POM recommend
+        const URL_BASIC_RECCOMEND = "http://192.168.1.105:5000/recommend";
+        let alreadyFetched = false;
+        let cachedData = null;
         // check if data was fetch already (to avoid same request multiple times)
         // if so, return previous fetched data
         if (alreadyFetched) {
@@ -152,9 +155,6 @@ function callSinglePom(obj) {
     });
 }
 exports.callSinglePom = callSinglePom;
-function PX2data(PX2data) {
-    throw new Error("Function not implemented.");
-}
 
 
 /***/ }),
@@ -3977,11 +3977,15 @@ module.exports = function isAxiosError(payload) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.multiplePomFinder = void 0;
+exports.multipleDependenciesFinder = void 0;
 const vscode = __webpack_require__(1);
 var pomParser = __webpack_require__(52);
-function multiplePomFinder() {
-    var response = [];
+/* Find all pom file in the workspace and parse all pom file
+*  and at the end it add all dependencies into the response const
+*
+*/
+function multipleDependenciesFinder() {
+    const response = [];
     vscode.workspace.findFiles('**/pom.xml').then(files => {
         files.forEach(file => {
             //open file 
@@ -4009,7 +4013,7 @@ function multiplePomFinder() {
     });
     return response;
 }
-exports.multiplePomFinder = multiplePomFinder;
+exports.multipleDependenciesFinder = multipleDependenciesFinder;
 
 
 /***/ }),
@@ -11019,7 +11023,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.reccomendListUI = void 0;
 const vscode = __webpack_require__(1);
 const listComponent_1 = __webpack_require__(99);
-function reccomendListUI(libRac, context) {
+function reccomendListUI(libRac, context, storageManager) {
     const panel = vscode.window.createWebviewPanel('Rac', 'Racommander', vscode.ViewColumn.One, {
         enableScripts: true
     });
@@ -11028,9 +11032,10 @@ function reccomendListUI(libRac, context) {
     //recive the message by webview script
     panel.webview.onDidReceiveMessage(message => {
         switch (message.command) {
-            case 'alert':
+            case 'send':
+                //recommend.store(message.text)[0];
+                storageManager.setValue('recommendLib', message.text);
                 vscode.window.showInformationMessage(message.text[0]);
-                return;
         }
     }, undefined, context.subscriptions);
 }
@@ -11101,7 +11106,7 @@ function getWebviewContent(libRac) {
         if (element.checked) { res.push(element.value); }
       });
       vscode.postMessage({
-        command: 'alert',
+        command: 'send',
         text: res
       });
     }
@@ -11169,29 +11174,33 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.addDependencyHandler = void 0;
+exports.addDependencyHandler = exports.applyDependencySelected = void 0;
 const fse = __webpack_require__(102);
-const path = __webpack_require__(113);
 const vscode = __webpack_require__(1);
 const lexerUtils_1 = __webpack_require__(142);
 const artifactService_1 = __webpack_require__(144);
 //import { selectProjectIfNecessary } from "../utils/uiUtils";
-function addDependencyHandler(options, str) {
+function applyDependencySelected(params, options) {
     return __awaiter(this, void 0, void 0, function* () {
-        let pomPath;
-        //console.log('Path of file POM');
-        //console.log(options.filePath);
-        //console.log("str");
-        //console.log(str);
+        params.forEach((element) => {
+            addDependencyHandler(options, element);
+        });
+    });
+}
+exports.applyDependencySelected = applyDependencySelected;
+function addDependencyHandler(options, dependency) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let pomPath = '';
         if (options) {
             // for nodes from Maven explorer
             pomPath = options.filePath;
         }
-        else {
-            // for "Maven dependencies" nodes from Project Manager
-            pomPath = path.join("./", "pom.xml");
-            console.log(pomPath);
-        }
+        //else  {
+        // for "Maven dependencies" nodes from Project Manager
+        //pomPath =  path.join("./", "pom.xml");
+        //console.log(pomPath);
+        // Display a message box to the user
+        //} 
         if (!options && !options.projectBasePath) {
             // select a project(pomfile)
             /* const selectedProject: MavenProject | undefined = await selectProjectIfNecessary();
@@ -11199,16 +11208,18 @@ function addDependencyHandler(options, str) {
                 return;
             }
             pomPath = selectedProject.pomPath; */
-            console.log("POM NOT FOUND");
+            // Display a message box to the user
+            vscode.window.showInformationMessage('POM not found!');
+            return;
         }
-        if (!(yield fse.pathExists(pomPath))) {
-            throw console.log("Specified POM file does not exist on file system.");
-        }
-        const keywordString = yield vscode.window.showInputBox({
+        /* if (!await fse.pathExists(pomPath)) {
+            throw  console.log("Specified POM file does not exist on file system.");
+        } */
+        /* const keywordString: string | undefined = await vscode.window.showInputBox({
             ignoreFocusOut: true,
             prompt: "Input keywords to search artifacts from Maven Central Repository.",
             placeHolder: "e.g. spring azure storage",
-            validateInput: (text) => {
+            validateInput: (text: string) => {
                 if (text.trim().length < 3) {
                     return "Keywords are too short.";
                 }
@@ -11217,8 +11228,8 @@ function addDependencyHandler(options, str) {
         });
         if (!keywordString) {
             return;
-        }
-        const selectedDoc = yield vscode.window.showQuickPick(artifactService_1.getArtifacts(keywordString.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({ value: artifact, label: `$(package) ${artifact.a}`, description: artifact.g }))), { placeHolder: "Select a dependency ..." }).then(selected => selected ? selected.value : undefined);
+        } */
+        const selectedDoc = yield vscode.window.showQuickPick(artifactService_1.getArtifacts(dependency.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({ value: artifact, label: `$(package) ${artifact.a}`, description: artifact.g }))), { placeHolder: "Select a dependency ..." }).then(selected => selected ? selected.value : undefined);
         if (!selectedDoc) {
             return;
         }

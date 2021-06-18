@@ -57,7 +57,7 @@ export function getWebviewContent(libRac: any[]) {
         if (element.checked) { res.push(element.value); }
       });
       vscode.postMessage({
-        command: 'alert',
+        command: 'send',
         text: res
       });
     }

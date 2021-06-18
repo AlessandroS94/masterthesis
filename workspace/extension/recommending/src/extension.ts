@@ -3,9 +3,9 @@
 // Import the library for the extension
 import * as vscode from 'vscode';
 import { LocalStorage } from './storage/LocalStorage';
-import { callSinglePom } from './service/request';
-import { multiplePomFinder } from './utils/pomFinder';
-import { reccomendListUI } from './utils/uiComponent';
+import { callSinglePom } from './service/recommendService';
+import { multipleDependenciesFinder } from './utils/multipleDependenciesFinder';
+import { reccomendListUI } from './utils/recomendListUI';
 import { Lib } from './model/lib';
 import { addDependencyHandler } from './utils/pomAddingLibrary';
 
@@ -53,7 +53,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	//Subscribe the command
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(pomGetter);
-
+	context.subscriptions.push(addToPom);
 }
 
 // this method is called when your extension is deactivated
@@ -65,16 +65,19 @@ export function deactivate() { }
 function procedureRecommend(context: vscode.ExtensionContext, storageManager: LocalStorage) {
 
 	// create the object of the parsed POM 
-	const libPom = new Lib(multiplePomFinder());
+	const libPom = new Lib(multipleDependenciesFinder());
 
 	// Recive and view the racommend data
 	let getRecommend = async (libPom: any) => {
 		// Data of the racommend call
-		var a = await callSinglePom(libPom);
+		let raccomand = await callSinglePom(libPom);
 		//console.log(a?.data.score);
-		let libRac = a?.data.score;
+		let libRac = raccomand?.data.score;
 		// open the page to select the recommend lib 
-		reccomendListUI(libRac, context);
-	};
+		reccomendListUI(libRac,context,storageManager);
+		//printDependency(storageManager.getValue('recommendLib'));
+		
+		};
+	//storageManager.setValue('recomend_lib',[]);
 	getRecommend(libPom);
 }

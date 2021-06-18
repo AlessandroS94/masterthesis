@@ -5,20 +5,25 @@ import { ElementNode, getNodesByTag, XmlTagName } from "../utils/lexerUtils";
 import { getArtifacts, IArtifactMetadata } from "../service/artifactService";
 //import { selectProjectIfNecessary } from "../utils/uiUtils";
 
-export async function addDependencyHandler(options: any, str:String): Promise<void> {
-    let pomPath: string;
-    //console.log('Path of file POM');
-    //console.log(options.filePath);
-    //console.log("str");
-    //console.log(str);
+export async function applyDependencySelected(params:any,options: any) {
+    params.forEach((element: any) => {
+        addDependencyHandler(options,element);
+    });
+    
+}
+export async function addDependencyHandler(options: any, dependency:String): Promise<void> {
+    let pomPath = '';
     if (options) {
         // for nodes from Maven explorer
         pomPath = options.filePath;
-    } else  {
-        // for "Maven dependencies" nodes from Project Manager
-        pomPath =  path.join("./", "pom.xml");
-        console.log(pomPath);
     } 
+    //else  {
+        // for "Maven dependencies" nodes from Project Manager
+        //pomPath =  path.join("./", "pom.xml");
+        //console.log(pomPath);
+        // Display a message box to the user
+    //} 
+
     if (!options && !options.projectBasePath){
         // select a project(pomfile)
         /* const selectedProject: MavenProject | undefined = await selectProjectIfNecessary();
@@ -26,14 +31,16 @@ export async function addDependencyHandler(options: any, str:String): Promise<vo
             return;
         }
         pomPath = selectedProject.pomPath; */
-        console.log("POM NOT FOUND");
+        // Display a message box to the user
+		vscode.window.showInformationMessage('POM not found!');
+        return;
     }
 
-    if (!await fse.pathExists(pomPath)) {
+    /* if (!await fse.pathExists(pomPath)) {
         throw  console.log("Specified POM file does not exist on file system.");
-    }
+    } */
 
-    const keywordString: string | undefined = await vscode.window.showInputBox({
+    /* const keywordString: string | undefined = await vscode.window.showInputBox({
         ignoreFocusOut: true,
         prompt: "Input keywords to search artifacts from Maven Central Repository.",
         placeHolder: "e.g. spring azure storage",
@@ -46,10 +53,10 @@ export async function addDependencyHandler(options: any, str:String): Promise<vo
     });
     if (!keywordString) {
         return;
-    }
+    } */
 
     const selectedDoc: IArtifactMetadata | undefined = await vscode.window.showQuickPick<vscode.QuickPickItem & { value: IArtifactMetadata }>(
-        getArtifacts(keywordString.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({ value: artifact, label: `$(package) ${artifact.a}`, description: artifact.g }))),
+        getArtifacts(dependency.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({ value: artifact, label: `$(package) ${artifact.a}`, description: artifact.g }))),
         { placeHolder: "Select a dependency ..." }
     ).then(selected => selected ? selected.value : undefined);
     if (!selectedDoc) {

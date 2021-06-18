@@ -1,8 +1,13 @@
 import * as vscode from 'vscode';
 var pomParser = require("pom-parser");
 
-export function multiplePomFinder(): String[] {
-    var response: String[] = [];
+
+/* Find all pom file in the workspace and parse all pom file
+*  and at the end it add all dependencies into the response const
+*
+*/
+export function multipleDependenciesFinder(): String[] {
+    const response: String[] = [];
     vscode.workspace.findFiles('**/pom.xml').then(files => {
 
         files.forEach(file => {
@@ -25,6 +30,7 @@ export function multiplePomFinder(): String[] {
 
                 pomResponse.pomObject.project.dependencies.dependency.forEach((key: any) => {
                     const library = (key.groupid);
+                    
                     response.push(library);
                 });
                 //storageManager.setValue(""+counter,response);
