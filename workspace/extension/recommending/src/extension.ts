@@ -33,15 +33,16 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	let addToPom = vscode.commands.registerCommand('addPom.pom', () => {
 		// The code you place here will be executed every time your command is executed
-
-		vscode.workspace.findFiles('**/pom.xml').then(files => {
-			files.forEach(file => {
-				var opts = { filePath: file.fsPath };
-				var str = 'org.pac4j:pac4j-http';
-				addDependencyHandler(opts,str); 
-			});
-		});
+		
+		// vscode.workspace.findFiles('**/pom.xml').then(files => {
+		//	files.forEach(file => {
+		//		var opts = { filePath: file.fsPath };
+		//		var str = 'org.pac4j:pac4j-http';
+		//		addDependencyHandler(opts,str); 
+		//	});
+		//}); */
 		//addDependencyHandler(options);
+		
 
 	});
 
@@ -72,6 +73,7 @@ function procedureRecommend(context: vscode.ExtensionContext, storageManager: Lo
 		// Data of the racommend call
 		let raccomand = await callSinglePom(libPom);
 		//console.log(a?.data.score);
+		// @ts-ignore
 		let libRac = raccomand?.data.score;
 		// open the page to select the recommend lib 
 		reccomendListUI(libRac,context,storageManager);

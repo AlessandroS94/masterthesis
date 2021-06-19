@@ -24,8 +24,7 @@ const LocalStorage_1 = __webpack_require__(2);
 const recommendService_1 = __webpack_require__(3);
 const multipleDependenciesFinder_1 = __webpack_require__(51);
 const recomendListUI_1 = __webpack_require__(98);
-const lib_1 = __webpack_require__(100);
-const pomAddingLibrary_1 = __webpack_require__(101);
+const lib_1 = __webpack_require__(145);
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -45,13 +44,13 @@ function activate(context) {
         });
         let addToPom = vscode.commands.registerCommand('addPom.pom', () => {
             // The code you place here will be executed every time your command is executed
-            vscode.workspace.findFiles('**/pom.xml').then(files => {
-                files.forEach(file => {
-                    var opts = { filePath: file.fsPath };
-                    var str = 'org.pac4j:pac4j-http';
-                    pomAddingLibrary_1.addDependencyHandler(opts, str);
-                });
-            });
+            // vscode.workspace.findFiles('**/pom.xml').then(files => {
+            //	files.forEach(file => {
+            //		var opts = { filePath: file.fsPath };
+            //		var str = 'org.pac4j:pac4j-http';
+            //		addDependencyHandler(opts,str); 
+            //	});
+            //}); */
             //addDependencyHandler(options);
         });
         // This command activate the raccomand system for more pom
@@ -78,6 +77,7 @@ function procedureRecommend(context, storageManager) {
         // Data of the racommend call
         let raccomand = yield recommendService_1.callSinglePom(libPom);
         //console.log(a?.data.score);
+        // @ts-ignore
         let libRac = raccomand === null || raccomand === void 0 ? void 0 : raccomand.data.score;
         // open the page to select the recommend lib 
         recomendListUI_1.reccomendListUI(libRac, context, storageManager);
@@ -11023,6 +11023,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.reccomendListUI = void 0;
 const vscode = __webpack_require__(1);
 const listComponent_1 = __webpack_require__(99);
+const pomAddingLibrary_1 = __webpack_require__(100);
 function reccomendListUI(libRac, context, storageManager) {
     const panel = vscode.window.createWebviewPanel('Rac', 'Racommander', vscode.ViewColumn.One, {
         enableScripts: true
@@ -11034,8 +11035,11 @@ function reccomendListUI(libRac, context, storageManager) {
         switch (message.command) {
             case 'send':
                 //recommend.store(message.text)[0];
-                storageManager.setValue('recommendLib', message.text);
-                vscode.window.showInformationMessage(message.text[0]);
+                //storageManager.setValue('recommendLib',message.text);
+                vscode.workspace.findFiles('**/pom.xml').then(files => {
+                    var opts = { filePath: files[0].fsPath };
+                    pomAddingLibrary_1.addDependencyHandler(opts, message.text);
+                });
         }
     }, undefined, context.subscriptions);
 }
@@ -11138,28 +11142,6 @@ function deserializerRac(libRac) {
 
 /***/ }),
 /* 100 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Lib = void 0;
-class Lib {
-    constructor(lib) {
-        this.lib = lib;
-    }
-    getLib() {
-        return this.lib;
-    }
-    setLib(lib) {
-        this.lib = lib;
-    }
-}
-exports.Lib = Lib;
-
-
-/***/ }),
-/* 101 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -11175,10 +11157,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.addDependencyHandler = exports.applyDependencySelected = void 0;
-const fse = __webpack_require__(102);
+const fse = __webpack_require__(101);
 const vscode = __webpack_require__(1);
-const lexerUtils_1 = __webpack_require__(142);
-const artifactService_1 = __webpack_require__(144);
+const lexerUtils_1 = __webpack_require__(141);
+const artifactService_1 = __webpack_require__(143);
 //import { selectProjectIfNecessary } from "../utils/uiUtils";
 function applyDependencySelected(params, options) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -11188,7 +11170,7 @@ function applyDependencySelected(params, options) {
     });
 }
 exports.applyDependencySelected = applyDependencySelected;
-function addDependencyHandler(options, dependency) {
+function addDependencyHandler(options, dependencies) {
     return __awaiter(this, void 0, void 0, function* () {
         let pomPath = '';
         if (options) {
@@ -11229,11 +11211,14 @@ function addDependencyHandler(options, dependency) {
         if (!keywordString) {
             return;
         } */
-        const selectedDoc = yield vscode.window.showQuickPick(artifactService_1.getArtifacts(dependency.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({ value: artifact, label: `$(package) ${artifact.a}`, description: artifact.g }))), { placeHolder: "Select a dependency ..." }).then(selected => selected ? selected.value : undefined);
-        if (!selectedDoc) {
-            return;
+        for (const dependency of dependencies) {
+            vscode.window.showInformationMessage('' + dependency);
+            const selectedDoc = yield vscode.window.showQuickPick(artifactService_1.getArtifacts(dependency.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({ value: artifact, label: `$(package) ${artifact.a}`, description: artifact.g }))), { placeHolder: "Select a dependency ..." }).then(selected => selected ? selected.value : undefined);
+            if (!selectedDoc) {
+                continue;
+            }
+            addDependency(pomPath, selectedDoc.g, selectedDoc.a, selectedDoc.latestVersion);
         }
-        yield addDependency(pomPath, selectedDoc.g, selectedDoc.a, selectedDoc.latestVersion);
     });
 }
 exports.addDependencyHandler = addDependencyHandler;
@@ -11261,7 +11246,7 @@ function insertDependency(pomPath, targetNode, gid, aid, version) {
             throw console.log("Invalid target XML node to insert dependency.");
         }
         const currentDocument = yield vscode.workspace.openTextDocument(pomPath);
-        const textEditor = yield vscode.window.showTextDocument(currentDocument);
+        const textEditor = yield vscode.window.showTextDocument(currentDocument, undefined, true);
         const baseIndent = getIndentation(currentDocument, targetNode.contentEnd);
         const options = textEditor.options;
         const indent = options.insertSpaces ? " ".repeat(options.tabSize) : "\t";
@@ -11315,36 +11300,36 @@ function getIndentation(document, offset) {
 
 
 /***/ }),
-/* 102 */
+/* 101 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const assign = __webpack_require__(103)
+const assign = __webpack_require__(102)
 
 const fs = {}
 
 // Export graceful-fs:
-assign(fs, __webpack_require__(104))
+assign(fs, __webpack_require__(103))
 // Export extra methods:
-assign(fs, __webpack_require__(111))
-assign(fs, __webpack_require__(121))
-assign(fs, __webpack_require__(116))
-assign(fs, __webpack_require__(125))
-assign(fs, __webpack_require__(127))
+assign(fs, __webpack_require__(110))
+assign(fs, __webpack_require__(120))
+assign(fs, __webpack_require__(115))
+assign(fs, __webpack_require__(124))
+assign(fs, __webpack_require__(126))
+assign(fs, __webpack_require__(131))
 assign(fs, __webpack_require__(132))
 assign(fs, __webpack_require__(133))
 assign(fs, __webpack_require__(134))
-assign(fs, __webpack_require__(135))
-assign(fs, __webpack_require__(141))
-assign(fs, __webpack_require__(120))
+assign(fs, __webpack_require__(140))
+assign(fs, __webpack_require__(119))
 
 module.exports = fs
 
 
 /***/ }),
-/* 103 */
+/* 102 */
 /***/ ((module) => {
 
 "use strict";
@@ -11367,13 +11352,13 @@ module.exports = assign
 
 
 /***/ }),
-/* 104 */
+/* 103 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 // This is adapted from https://github.com/normalize/mz
 // Copyright (c) 2014-2016 Jonathan Ong me@jongleberry.com and Contributors
-const u = __webpack_require__(105).fromCallback
-const fs = __webpack_require__(106)
+const u = __webpack_require__(104).fromCallback
+const fs = __webpack_require__(105)
 
 const api = [
   'access',
@@ -11480,7 +11465,7 @@ exports.write = function (fd, buffer, a, b, c, callback) {
 
 
 /***/ }),
-/* 105 */
+/* 104 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -11512,13 +11497,13 @@ exports.fromPromise = function (fn) {
 
 
 /***/ }),
-/* 106 */
+/* 105 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var fs = __webpack_require__(53)
-var polyfills = __webpack_require__(107)
-var legacy = __webpack_require__(109)
-var clone = __webpack_require__(110)
+var polyfills = __webpack_require__(106)
+var legacy = __webpack_require__(108)
+var clone = __webpack_require__(109)
 
 var util = __webpack_require__(40)
 
@@ -11891,10 +11876,10 @@ function retry () {
 
 
 /***/ }),
-/* 107 */
+/* 106 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var constants = __webpack_require__(108)
+var constants = __webpack_require__(107)
 
 var origCwd = process.cwd
 var cwd = null
@@ -12243,14 +12228,14 @@ function patch (fs) {
 
 
 /***/ }),
-/* 108 */
+/* 107 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("constants");;
 
 /***/ }),
-/* 109 */
+/* 108 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var Stream = __webpack_require__(31).Stream
@@ -12374,7 +12359,7 @@ function legacy (fs) {
 
 
 /***/ }),
-/* 110 */
+/* 109 */
 /***/ ((module) => {
 
 "use strict";
@@ -12404,27 +12389,27 @@ function clone (obj) {
 
 
 /***/ }),
-/* 111 */
+/* 110 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-const u = __webpack_require__(105).fromCallback
+const u = __webpack_require__(104).fromCallback
 module.exports = {
-  copy: u(__webpack_require__(112))
+  copy: u(__webpack_require__(111))
 }
 
 
 /***/ }),
-/* 112 */
+/* 111 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(106)
-const path = __webpack_require__(113)
-const ncp = __webpack_require__(114)
-const mkdir = __webpack_require__(116)
-const pathExists = __webpack_require__(120).pathExists
+const fs = __webpack_require__(105)
+const path = __webpack_require__(112)
+const ncp = __webpack_require__(113)
+const mkdir = __webpack_require__(115)
+const pathExists = __webpack_require__(119).pathExists
 
 function copy (src, dest, options, callback) {
   if (typeof options === 'function' && !callback) {
@@ -12475,21 +12460,21 @@ module.exports = copy
 
 
 /***/ }),
-/* 113 */
+/* 112 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("path");;
 
 /***/ }),
-/* 114 */
+/* 113 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 // imported from ncp (this is temporary, will rewrite)
 
-var fs = __webpack_require__(106)
-var path = __webpack_require__(113)
-var utimes = __webpack_require__(115)
+var fs = __webpack_require__(105)
+var path = __webpack_require__(112)
+var utimes = __webpack_require__(114)
 
 function ncp (source, dest, options, callback) {
   if (!callback) {
@@ -12722,15 +12707,15 @@ module.exports = ncp
 
 
 /***/ }),
-/* 115 */
+/* 114 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(106)
+const fs = __webpack_require__(105)
 const os = __webpack_require__(42)
-const path = __webpack_require__(113)
+const path = __webpack_require__(112)
 
 // HFS, ext{2,3}, FAT do not, Node.js v0.10 does not
 function hasMillisResSync () {
@@ -12801,14 +12786,14 @@ module.exports = {
 
 
 /***/ }),
-/* 116 */
+/* 115 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
-const u = __webpack_require__(105).fromCallback
-const mkdirs = u(__webpack_require__(117))
-const mkdirsSync = __webpack_require__(119)
+const u = __webpack_require__(104).fromCallback
+const mkdirs = u(__webpack_require__(116))
+const mkdirsSync = __webpack_require__(118)
 
 module.exports = {
   mkdirs: mkdirs,
@@ -12822,15 +12807,15 @@ module.exports = {
 
 
 /***/ }),
-/* 117 */
+/* 116 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(106)
-const path = __webpack_require__(113)
-const invalidWin32Path = __webpack_require__(118).invalidWin32Path
+const fs = __webpack_require__(105)
+const path = __webpack_require__(112)
+const invalidWin32Path = __webpack_require__(117).invalidWin32Path
 
 const o777 = parseInt('0777', 8)
 
@@ -12892,13 +12877,13 @@ module.exports = mkdirs
 
 
 /***/ }),
-/* 118 */
+/* 117 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const path = __webpack_require__(113)
+const path = __webpack_require__(112)
 
 // get drive on windows
 function getRootPath (p) {
@@ -12924,15 +12909,15 @@ module.exports = {
 
 
 /***/ }),
-/* 119 */
+/* 118 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(106)
-const path = __webpack_require__(113)
-const invalidWin32Path = __webpack_require__(118).invalidWin32Path
+const fs = __webpack_require__(105)
+const path = __webpack_require__(112)
+const invalidWin32Path = __webpack_require__(117).invalidWin32Path
 
 const o777 = parseInt('0777', 8)
 
@@ -12990,13 +12975,13 @@ module.exports = mkdirsSync
 
 
 /***/ }),
-/* 120 */
+/* 119 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
-const u = __webpack_require__(105).fromPromise
-const fs = __webpack_require__(104)
+const u = __webpack_require__(104).fromPromise
+const fs = __webpack_require__(103)
 
 function pathExists (path) {
   return fs.access(path).then(() => true).catch(() => false)
@@ -13009,25 +12994,25 @@ module.exports = {
 
 
 /***/ }),
-/* 121 */
+/* 120 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 module.exports = {
-  copySync: __webpack_require__(122)
+  copySync: __webpack_require__(121)
 }
 
 
 /***/ }),
-/* 122 */
+/* 121 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(106)
-const path = __webpack_require__(113)
-const copyFileSync = __webpack_require__(123)
-const mkdir = __webpack_require__(116)
+const fs = __webpack_require__(105)
+const path = __webpack_require__(112)
+const copyFileSync = __webpack_require__(122)
+const mkdir = __webpack_require__(115)
 
 function copySync (src, dest, options) {
   if (typeof options === 'function' || options instanceof RegExp) {
@@ -13087,16 +13072,16 @@ module.exports = copySync
 
 
 /***/ }),
-/* 123 */
+/* 122 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(106)
+const fs = __webpack_require__(105)
 
 const BUF_LENGTH = 64 * 1024
-const _buff = __webpack_require__(124)(BUF_LENGTH)
+const _buff = __webpack_require__(123)(BUF_LENGTH)
 
 function copyFileSync (srcFile, destFile, options) {
   const overwrite = options.overwrite
@@ -13135,7 +13120,7 @@ module.exports = copyFileSync
 
 
 /***/ }),
-/* 124 */
+/* 123 */
 /***/ ((module) => {
 
 /* eslint-disable node/no-deprecated-api */
@@ -13152,14 +13137,14 @@ module.exports = function (size) {
 
 
 /***/ }),
-/* 125 */
+/* 124 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(105).fromCallback
-const rimraf = __webpack_require__(126)
+const u = __webpack_require__(104).fromCallback
+const rimraf = __webpack_require__(125)
 
 module.exports = {
   remove: u(rimraf),
@@ -13168,14 +13153,14 @@ module.exports = {
 
 
 /***/ }),
-/* 126 */
+/* 125 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(106)
-const path = __webpack_require__(113)
+const fs = __webpack_require__(105)
+const path = __webpack_require__(112)
 const assert = __webpack_require__(32)
 
 const isWindows = (process.platform === 'win32')
@@ -13489,17 +13474,17 @@ rimraf.sync = rimrafSync
 
 
 /***/ }),
-/* 127 */
+/* 126 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(105).fromCallback
-const jsonFile = __webpack_require__(128)
+const u = __webpack_require__(104).fromCallback
+const jsonFile = __webpack_require__(127)
 
-jsonFile.outputJson = u(__webpack_require__(130))
-jsonFile.outputJsonSync = __webpack_require__(131)
+jsonFile.outputJson = u(__webpack_require__(129))
+jsonFile.outputJsonSync = __webpack_require__(130)
 // aliases
 jsonFile.outputJSON = jsonFile.outputJson
 jsonFile.outputJSONSync = jsonFile.outputJsonSync
@@ -13512,14 +13497,14 @@ module.exports = jsonFile
 
 
 /***/ }),
-/* 128 */
+/* 127 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(105).fromCallback
-const jsonFile = __webpack_require__(129)
+const u = __webpack_require__(104).fromCallback
+const jsonFile = __webpack_require__(128)
 
 module.exports = {
   // jsonfile exports
@@ -13531,12 +13516,12 @@ module.exports = {
 
 
 /***/ }),
-/* 129 */
+/* 128 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var _fs
 try {
-  _fs = __webpack_require__(106)
+  _fs = __webpack_require__(105)
 } catch (_) {
   _fs = __webpack_require__(53)
 }
@@ -13671,16 +13656,16 @@ module.exports = jsonfile
 
 
 /***/ }),
-/* 130 */
+/* 129 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const path = __webpack_require__(113)
-const mkdir = __webpack_require__(116)
-const pathExists = __webpack_require__(120).pathExists
-const jsonFile = __webpack_require__(128)
+const path = __webpack_require__(112)
+const mkdir = __webpack_require__(115)
+const pathExists = __webpack_require__(119).pathExists
+const jsonFile = __webpack_require__(127)
 
 function outputJson (file, data, options, callback) {
   if (typeof options === 'function') {
@@ -13705,16 +13690,16 @@ module.exports = outputJson
 
 
 /***/ }),
-/* 131 */
+/* 130 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(106)
-const path = __webpack_require__(113)
-const mkdir = __webpack_require__(116)
-const jsonFile = __webpack_require__(128)
+const fs = __webpack_require__(105)
+const path = __webpack_require__(112)
+const mkdir = __webpack_require__(115)
+const jsonFile = __webpack_require__(127)
 
 function outputJsonSync (file, data, options) {
   const dir = path.dirname(file)
@@ -13730,7 +13715,7 @@ module.exports = outputJsonSync
 
 
 /***/ }),
-/* 132 */
+/* 131 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -13742,12 +13727,12 @@ module.exports = outputJsonSync
 
 // this needs a cleanup
 
-const u = __webpack_require__(105).fromCallback
-const fs = __webpack_require__(106)
-const ncp = __webpack_require__(114)
-const path = __webpack_require__(113)
-const remove = __webpack_require__(125).remove
-const mkdirp = __webpack_require__(116).mkdirs
+const u = __webpack_require__(104).fromCallback
+const fs = __webpack_require__(105)
+const ncp = __webpack_require__(113)
+const path = __webpack_require__(112)
+const remove = __webpack_require__(124).remove
+const mkdirp = __webpack_require__(115).mkdirs
 
 function move (src, dest, options, callback) {
   if (typeof options === 'function') {
@@ -13907,18 +13892,18 @@ module.exports = {
 
 
 /***/ }),
-/* 133 */
+/* 132 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(106)
-const path = __webpack_require__(113)
-const copySync = __webpack_require__(121).copySync
-const removeSync = __webpack_require__(125).removeSync
-const mkdirpSync = __webpack_require__(116).mkdirsSync
-const buffer = __webpack_require__(124)
+const fs = __webpack_require__(105)
+const path = __webpack_require__(112)
+const copySync = __webpack_require__(120).copySync
+const removeSync = __webpack_require__(124).removeSync
+const mkdirpSync = __webpack_require__(115).mkdirsSync
+const buffer = __webpack_require__(123)
 
 function moveSync (src, dest, options) {
   options = options || {}
@@ -14032,17 +14017,17 @@ module.exports = {
 
 
 /***/ }),
-/* 134 */
+/* 133 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(105).fromCallback
+const u = __webpack_require__(104).fromCallback
 const fs = __webpack_require__(53)
-const path = __webpack_require__(113)
-const mkdir = __webpack_require__(116)
-const remove = __webpack_require__(125)
+const path = __webpack_require__(112)
+const mkdir = __webpack_require__(115)
+const remove = __webpack_require__(124)
 
 const emptyDir = u(function emptyDir (dir, callback) {
   callback = callback || function () {}
@@ -14087,15 +14072,15 @@ module.exports = {
 
 
 /***/ }),
-/* 135 */
+/* 134 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const file = __webpack_require__(136)
-const link = __webpack_require__(137)
-const symlink = __webpack_require__(138)
+const file = __webpack_require__(135)
+const link = __webpack_require__(136)
+const symlink = __webpack_require__(137)
 
 module.exports = {
   // file
@@ -14117,17 +14102,17 @@ module.exports = {
 
 
 /***/ }),
-/* 136 */
+/* 135 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(105).fromCallback
-const path = __webpack_require__(113)
-const fs = __webpack_require__(106)
-const mkdir = __webpack_require__(116)
-const pathExists = __webpack_require__(120).pathExists
+const u = __webpack_require__(104).fromCallback
+const path = __webpack_require__(112)
+const fs = __webpack_require__(105)
+const mkdir = __webpack_require__(115)
+const pathExists = __webpack_require__(119).pathExists
 
 function createFile (file, callback) {
   function makeFile () {
@@ -14173,17 +14158,17 @@ module.exports = {
 
 
 /***/ }),
-/* 137 */
+/* 136 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(105).fromCallback
-const path = __webpack_require__(113)
-const fs = __webpack_require__(106)
-const mkdir = __webpack_require__(116)
-const pathExists = __webpack_require__(120).pathExists
+const u = __webpack_require__(104).fromCallback
+const path = __webpack_require__(112)
+const fs = __webpack_require__(105)
+const mkdir = __webpack_require__(115)
+const pathExists = __webpack_require__(119).pathExists
 
 function createLink (srcpath, dstpath, callback) {
   function makeLink (srcpath, dstpath) {
@@ -14241,28 +14226,28 @@ module.exports = {
 
 
 /***/ }),
-/* 138 */
+/* 137 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(105).fromCallback
-const path = __webpack_require__(113)
-const fs = __webpack_require__(106)
-const _mkdirs = __webpack_require__(116)
+const u = __webpack_require__(104).fromCallback
+const path = __webpack_require__(112)
+const fs = __webpack_require__(105)
+const _mkdirs = __webpack_require__(115)
 const mkdirs = _mkdirs.mkdirs
 const mkdirsSync = _mkdirs.mkdirsSync
 
-const _symlinkPaths = __webpack_require__(139)
+const _symlinkPaths = __webpack_require__(138)
 const symlinkPaths = _symlinkPaths.symlinkPaths
 const symlinkPathsSync = _symlinkPaths.symlinkPathsSync
 
-const _symlinkType = __webpack_require__(140)
+const _symlinkType = __webpack_require__(139)
 const symlinkType = _symlinkType.symlinkType
 const symlinkTypeSync = _symlinkType.symlinkTypeSync
 
-const pathExists = __webpack_require__(120).pathExists
+const pathExists = __webpack_require__(119).pathExists
 
 function createSymlink (srcpath, dstpath, type, callback) {
   callback = (typeof type === 'function') ? type : callback
@@ -14314,15 +14299,15 @@ module.exports = {
 
 
 /***/ }),
-/* 139 */
+/* 138 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const path = __webpack_require__(113)
-const fs = __webpack_require__(106)
-const pathExists = __webpack_require__(120).pathExists
+const path = __webpack_require__(112)
+const fs = __webpack_require__(105)
+const pathExists = __webpack_require__(119).pathExists
 
 /**
  * Function that returns two types of paths, one relative to symlink, and one
@@ -14420,13 +14405,13 @@ module.exports = {
 
 
 /***/ }),
-/* 140 */
+/* 139 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(106)
+const fs = __webpack_require__(105)
 
 function symlinkType (srcpath, type, callback) {
   callback = (typeof type === 'function') ? type : callback
@@ -14458,17 +14443,17 @@ module.exports = {
 
 
 /***/ }),
-/* 141 */
+/* 140 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(105).fromCallback
-const fs = __webpack_require__(106)
-const path = __webpack_require__(113)
-const mkdir = __webpack_require__(116)
-const pathExists = __webpack_require__(120).pathExists
+const u = __webpack_require__(104).fromCallback
+const fs = __webpack_require__(105)
+const path = __webpack_require__(112)
+const mkdir = __webpack_require__(115)
+const pathExists = __webpack_require__(119).pathExists
 
 function outputFile (file, data, encoding, callback) {
   if (typeof encoding === 'function') {
@@ -14505,14 +14490,14 @@ module.exports = {
 
 
 /***/ }),
-/* 142 */
+/* 141 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getCurrentNode = exports.getNodesByTag = exports.ElementNode = exports.XmlTagName = void 0;
-const xml_zero_lexer_1 = __webpack_require__(143);
+const xml_zero_lexer_1 = __webpack_require__(142);
 var XmlTagName;
 (function (XmlTagName) {
     XmlTagName["GroupId"] = "groupId";
@@ -14645,7 +14630,7 @@ function getElementHierarchy(text, tokens, tagOrOffset) {
 
 
 /***/ }),
-/* 143 */
+/* 142 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -15220,7 +15205,7 @@ var Lexx = function Lexx(xml, options) {
 exports.default = Lexx;
 
 /***/ }),
-/* 144 */
+/* 143 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -15237,7 +15222,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getLatestVersion = exports.getVersions = exports.getArtifacts = void 0;
 const https = __webpack_require__(28);
-const _ = __webpack_require__(145);
+const _ = __webpack_require__(144);
 const url = __webpack_require__(30);
 const URL_BASIC_SEARCH = "https://search.maven.org/solrsearch/select";
 function getArtifacts(keywords) {
@@ -15324,7 +15309,7 @@ function toQueryString(params) {
 
 
 /***/ }),
-/* 145 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* module decorator */ module = __webpack_require__.nmd(module);
@@ -32529,6 +32514,28 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/**
   // Check for `exports` after `define` in case a build optimizer adds it.
   else {}
 }.call(this));
+
+
+/***/ }),
+/* 145 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Lib = void 0;
+class Lib {
+    constructor(lib) {
+        this.lib = lib;
+    }
+    getLib() {
+        return this.lib;
+    }
+    setLib(lib) {
+        this.lib = lib;
+    }
+}
+exports.Lib = Lib;
 
 
 /***/ })

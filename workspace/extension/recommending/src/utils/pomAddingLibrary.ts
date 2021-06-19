@@ -3,28 +3,29 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { ElementNode, getNodesByTag, XmlTagName } from "../utils/lexerUtils";
 import { getArtifacts, IArtifactMetadata } from "../service/artifactService";
+import { count } from "console";
 //import { selectProjectIfNecessary } from "../utils/uiUtils";
 
-export async function applyDependencySelected(params:any,options: any) {
+export async function applyDependencySelected(params: any, options: any) {
     params.forEach((element: any) => {
-        addDependencyHandler(options,element);
+        addDependencyHandler(options, element);
     });
-    
+
 }
-export async function addDependencyHandler(options: any, dependency:String): Promise<void> {
+export async function addDependencyHandler(options: any, dependencies: any[]): Promise<void> {
     let pomPath = '';
     if (options) {
         // for nodes from Maven explorer
         pomPath = options.filePath;
-    } 
+    }
     //else  {
-        // for "Maven dependencies" nodes from Project Manager
-        //pomPath =  path.join("./", "pom.xml");
-        //console.log(pomPath);
-        // Display a message box to the user
+    // for "Maven dependencies" nodes from Project Manager
+    //pomPath =  path.join("./", "pom.xml");
+    //console.log(pomPath);
+    // Display a message box to the user
     //} 
 
-    if (!options && !options.projectBasePath){
+    if (!options && !options.projectBasePath) {
         // select a project(pomfile)
         /* const selectedProject: MavenProject | undefined = await selectProjectIfNecessary();
         if (!selectedProject) {
@@ -32,7 +33,7 @@ export async function addDependencyHandler(options: any, dependency:String): Pro
         }
         pomPath = selectedProject.pomPath; */
         // Display a message box to the user
-		vscode.window.showInformationMessage('POM not found!');
+        vscode.window.showInformationMessage('POM not found!');
         return;
     }
 
@@ -54,15 +55,19 @@ export async function addDependencyHandler(options: any, dependency:String): Pro
     if (!keywordString) {
         return;
     } */
+    
+    for (const dependency of dependencies) {
+        vscode.window.showInformationMessage('' + dependency);
+        const selectedDoc= await vscode.window.showQuickPick<vscode.QuickPickItem & { value: IArtifactMetadata }>(
+            getArtifacts(dependency.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({ value: artifact, label: `$(package) ${artifact.a}`, description: artifact.g }))),
+            { placeHolder: "Select a dependency ..." }
+        ).then(selected => selected ? selected.value : undefined);
+        if (!selectedDoc) {
+            continue;
+        }
+        addDependency(pomPath, selectedDoc.g, selectedDoc.a, selectedDoc.latestVersion);
 
-    const selectedDoc: IArtifactMetadata | undefined = await vscode.window.showQuickPick<vscode.QuickPickItem & { value: IArtifactMetadata }>(
-        getArtifacts(dependency.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({ value: artifact, label: `$(package) ${artifact.a}`, description: artifact.g }))),
-        { placeHolder: "Select a dependency ..." }
-    ).then(selected => selected ? selected.value : undefined);
-    if (!selectedDoc) {
-        return;
     }
-    await addDependency(pomPath, selectedDoc.g, selectedDoc.a, selectedDoc.latestVersion);
 }
 
 async function addDependency(pomPath: string, gid: string, aid: string, version: string): Promise<void> {
@@ -70,7 +75,7 @@ async function addDependency(pomPath: string, gid: string, aid: string, version:
     const contentBuf: Buffer = await fse.readFile(pomPath);
     const projectNodes: ElementNode[] = getNodesByTag(contentBuf.toString(), XmlTagName.Project);
     if (projectNodes === undefined || projectNodes.length !== 1) {
-        throw  console.log("Only support POM file with single <project> node.");
+        throw console.log("Only support POM file with single <project> node.");
     }
 
     const projectNode: ElementNode = projectNodes[0];
@@ -88,7 +93,7 @@ async function insertDependency(pomPath: string, targetNode: ElementNode, gid: s
         throw console.log("Invalid target XML node to insert dependency.");
     }
     const currentDocument: vscode.TextDocument = await vscode.workspace.openTextDocument(pomPath);
-    const textEditor: vscode.TextEditor = await vscode.window.showTextDocument(currentDocument);
+    const textEditor: vscode.TextEditor = await vscode.window.showTextDocument(currentDocument,undefined,true);
     const baseIndent: string = getIndentation(currentDocument, targetNode.contentEnd);
     const options: vscode.TextEditorOptions = textEditor.options;
     const indent: string = options.insertSpaces ? " ".repeat(<number>options.tabSize) : "\t";

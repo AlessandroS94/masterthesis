@@ -2,3 +2,5 @@
 workspace/server/venv/
 
 workspace/extension/recommending/node_modules/
+
+workspace/extension/recommending/.idea/

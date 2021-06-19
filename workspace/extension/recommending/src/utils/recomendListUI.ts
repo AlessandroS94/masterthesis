@@ -3,6 +3,7 @@ import { getWebviewContent } from '../component/listComponent';
 import { Lib } from '../model/lib';
 import { LocalStorage } from '../storage/LocalStorage';
 import { writeFile } from 'fs';
+import { addDependencyHandler } from './pomAddingLibrary';
 
 export function reccomendListUI(libRac: any[], context: vscode.ExtensionContext,storageManager:LocalStorage){
   
@@ -25,9 +26,13 @@ export function reccomendListUI(libRac: any[], context: vscode.ExtensionContext,
         case 'send':
           
           //recommend.store(message.text)[0];
-          storageManager.setValue('recommendLib',message.text);
-          vscode.window.showInformationMessage(message.text[0]); 
-
+          //storageManager.setValue('recommendLib',message.text);
+          vscode.workspace.findFiles('**/pom.xml').then(files=>{
+              
+              var opts = { filePath: files[0].fsPath};
+              addDependencyHandler(opts,message.text); 
+              
+          });
       }
     },
     undefined,
