@@ -20,13 +20,11 @@ exports.deactivate = exports.activate = void 0;
 // Import the module and reference it with the alias vscode in your code below
 // Import the library for the extension
 const vscode = __webpack_require__(1);
-const LocalStorage_1 = __webpack_require__(2);
-const recommendService_1 = __webpack_require__(3);
-const multipleDependenciesFinder_1 = __webpack_require__(51);
-const recomendListUI_1 = __webpack_require__(98);
-const lib_1 = __webpack_require__(145);
-const portionCode_1 = __webpack_require__(147);
-const urlListUI_1 = __webpack_require__(146);
+const recommendService_1 = __webpack_require__(2);
+const multipleDependenciesFinder_1 = __webpack_require__(50);
+const recomendListUI_1 = __webpack_require__(97);
+const lib_1 = __webpack_require__(144);
+const urlListUI_1 = __webpack_require__(145);
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -34,8 +32,6 @@ function activate(context) {
         // This line of code will only be executed once when your extension is activated
         //Start the extension
         console.log('"Recommending" is now active!');
-        // Start the local storage for this workspace
-        let storageManager = new LocalStorage_1.LocalStorage(context.globalState);
         // The command has been defined in the package.json file
         // Now provide the implementation of the command with registerCommand
         // The commandId parameter must match the command field in package.json
@@ -46,10 +42,10 @@ function activate(context) {
         });
         context.subscriptions.push(disposable);
         /********************************************************************************************************************************
-        *********************************************************************************************************************************
-        *                                           START URL RECOMMEND
-        *********************************************************************************************************************************
-        *********************************************************************************************************************************/
+         *********************************************************************************************************************************
+         *                                           START URL RECOMMEND
+         *********************************************************************************************************************************
+         *********************************************************************************************************************************/
         // this code runs whenever your click 'Create Gist' from the context menu in your browser.
         let urlRecommend = vscode.commands.registerCommand('recommending.getUrlRecommend', () => {
             procedureUrlRecommend();
@@ -57,40 +53,41 @@ function activate(context) {
         //Subscribe the command
         context.subscriptions.push(urlRecommend);
         /********************************************************************************************************************************
-        *********************************************************************************************************************************
-        *                                           FINISH URL RECOMMEND
-        *********************************************************************************************************************************
-        *********************************************************************************************************************************/
+         *********************************************************************************************************************************
+         *                                           FINISH URL RECOMMEND
+         *********************************************************************************************************************************
+         *********************************************************************************************************************************/
         /********************************************************************************************************************************
-        *********************************************************************************************************************************
-        *                                           START POM RECOMMEND
-        *********************************************************************************************************************************
-        *********************************************************************************************************************************/
+         *********************************************************************************************************************************
+         *                                           START POM RECOMMEND
+         *********************************************************************************************************************************
+         *********************************************************************************************************************************/
         // This command activate the raccomand system for more pom
         let pomGetter = vscode.commands.registerCommand('recommending.gettingPom', () => {
-            procedureRecommend(context, storageManager);
+            procedureRecommend(context);
         });
         //Subscribe the command
         context.subscriptions.push(pomGetter);
         /********************************************************************************************************************************
-        *********************************************************************************************************************************
-        *                                           FINISH POM RECOMMEND
-        *********************************************************************************************************************************
-        *********************************************************************************************************************************/
+         *********************************************************************************************************************************
+         *                                           FINISH POM RECOMMEND
+         *********************************************************************************************************************************
+         *********************************************************************************************************************************/
     });
 }
 exports.activate = activate;
 // this method is called when your extension is deactivated
-function deactivate() { }
+function deactivate() {
+}
 exports.deactivate = deactivate;
 /********************************************************************************************************************************
-*********************************************************************************************************************************
-*                                           START POM RECOMMEND
-*********************************************************************************************************************************
-*********************************************************************************************************************************/
+ *********************************************************************************************************************************
+ *                                           START POM RECOMMEND
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
 // This function find the pom on the VSCode Workspace
 // and parse the pom
-function procedureRecommend(context, storageManager) {
+function procedureRecommend(context) {
     // create the object of the parsed POM
     const libPom = new lib_1.Lib(multipleDependenciesFinder_1.multipleDependenciesFinder());
     // Recive and view the racommend data
@@ -102,7 +99,7 @@ function procedureRecommend(context, storageManager) {
             // @ts-ignore
             const libRac = raccomand === null || raccomand === void 0 ? void 0 : raccomand.data.score;
             // open the page to select the recommend lib
-            recomendListUI_1.reccomendListUI(libRac, context, storageManager);
+            recomendListUI_1.reccomendListUI(libRac, context);
             //printDependency(storageManager.getValue('recommendLib'));
         }
         catch (error) {
@@ -113,21 +110,21 @@ function procedureRecommend(context, storageManager) {
     getRecommend(libPom);
 }
 /********************************************************************************************************************************
-*********************************************************************************************************************************
-*                                           FININSH POM RECOMMEND
-*********************************************************************************************************************************
-*********************************************************************************************************************************/
+ *********************************************************************************************************************************
+ *                                           FININSH POM RECOMMEND
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
 /********************************************************************************************************************************
-*********************************************************************************************************************************
-*                                           START URL RECOMMEND
-*********************************************************************************************************************************
-*********************************************************************************************************************************/
+ *********************************************************************************************************************************
+ *                                           START URL RECOMMEND
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
 function procedureUrlRecommend() {
     return __awaiter(this, void 0, void 0, function* () {
         const editor = vscode.window.activeTextEditor;
         if (editor) {
             const text = editor.document.getText(editor.selection);
-            const portionCode = new portionCode_1.PortionCode(text);
+            //const portionCode = new PortionCode(text);
             /* let getUrlRecommend = async (portionCode: any) => {
                 // Data of the racommend call
                 let raccomand = await callRecommendUrlService(portionCode);
@@ -146,10 +143,10 @@ function procedureUrlRecommend() {
     });
 }
 /********************************************************************************************************************************
-*********************************************************************************************************************************
-*                                           FINISH URL RECOMMEND
-*********************************************************************************************************************************
-*********************************************************************************************************************************/
+ *********************************************************************************************************************************
+ *                                           FINISH URL RECOMMEND
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
 
 
 /***/ }),
@@ -161,36 +158,14 @@ module.exports = require("vscode");;
 
 /***/ }),
 /* 2 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LocalStorage = void 0;
-class LocalStorage {
-    constructor(storage) {
-        this.storage = storage;
-    }
-    getValue(key) {
-        return this.storage.get(key);
-    }
-    setValue(key, value) {
-        this.storage.update(key, value);
-    }
-}
-exports.LocalStorage = LocalStorage;
-
-
-/***/ }),
-/* 3 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
 /********************************************************************************************************************************
-*********************************************************************************************************************************
-*                                           START POM RECOMMEND
-*********************************************************************************************************************************
-*********************************************************************************************************************************/
+ *********************************************************************************************************************************
+ *                                           START POM RECOMMEND
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
 
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -203,47 +178,37 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.callSinglePom = void 0;
-const axios_1 = __webpack_require__(4);
+const axios_1 = __webpack_require__(3);
 function callSinglePom(obj) {
     return __awaiter(this, void 0, void 0, function* () {
         // URL to connect for POM recommend
         const URL_BASIC_RECCOMEND = "http://192.168.1.105:5000/recommend";
-        let alreadyFetched = false;
-        let cachedData = null;
-        // check if data was fetch already (to avoid same request multiple times)
-        // if so, return previous fetched data
-        if (alreadyFetched) {
-            return cachedData;
-        }
-        // else fetch data
-        let data = yield axios_1.default.post(URL_BASIC_RECCOMEND, obj).catch((e) => console.log(e)); // This is optional (use try/catch if you still want)
+        // This is optional (use try/catch if you still want)
         // set variables
-        alreadyFetched = true;
-        cachedData = data;
-        return data;
+        return yield axios_1.default.post(URL_BASIC_RECCOMEND, obj).catch((e) => console.log(e));
     });
 }
 exports.callSinglePom = callSinglePom;
 
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-module.exports = __webpack_require__(5);
+module.exports = __webpack_require__(4);
 
 /***/ }),
-/* 5 */
+/* 4 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
-var bind = __webpack_require__(7);
-var Axios = __webpack_require__(8);
-var mergeConfig = __webpack_require__(46);
-var defaults = __webpack_require__(14);
+var utils = __webpack_require__(5);
+var bind = __webpack_require__(6);
+var Axios = __webpack_require__(7);
+var mergeConfig = __webpack_require__(45);
+var defaults = __webpack_require__(13);
 
 /**
  * Create an instance of Axios
@@ -276,18 +241,18 @@ axios.create = function create(instanceConfig) {
 };
 
 // Expose Cancel & CancelToken
-axios.Cancel = __webpack_require__(47);
-axios.CancelToken = __webpack_require__(48);
-axios.isCancel = __webpack_require__(13);
+axios.Cancel = __webpack_require__(46);
+axios.CancelToken = __webpack_require__(47);
+axios.isCancel = __webpack_require__(12);
 
 // Expose all/spread
 axios.all = function all(promises) {
   return Promise.all(promises);
 };
-axios.spread = __webpack_require__(49);
+axios.spread = __webpack_require__(48);
 
 // Expose isAxiosError
-axios.isAxiosError = __webpack_require__(50);
+axios.isAxiosError = __webpack_require__(49);
 
 module.exports = axios;
 
@@ -296,13 +261,13 @@ module.exports.default = axios;
 
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var bind = __webpack_require__(7);
+var bind = __webpack_require__(6);
 
 /*global toString:true*/
 
@@ -654,7 +619,7 @@ module.exports = {
 
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ ((module) => {
 
 "use strict";
@@ -672,17 +637,17 @@ module.exports = function bind(fn, thisArg) {
 
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
-var buildURL = __webpack_require__(9);
-var InterceptorManager = __webpack_require__(10);
-var dispatchRequest = __webpack_require__(11);
-var mergeConfig = __webpack_require__(46);
+var utils = __webpack_require__(5);
+var buildURL = __webpack_require__(8);
+var InterceptorManager = __webpack_require__(9);
+var dispatchRequest = __webpack_require__(10);
+var mergeConfig = __webpack_require__(45);
 
 /**
  * Create a new instance of Axios
@@ -774,13 +739,13 @@ module.exports = Axios;
 
 
 /***/ }),
-/* 9 */
+/* 8 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
+var utils = __webpack_require__(5);
 
 function encode(val) {
   return encodeURIComponent(val).
@@ -851,13 +816,13 @@ module.exports = function buildURL(url, params, paramsSerializer) {
 
 
 /***/ }),
-/* 10 */
+/* 9 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
+var utils = __webpack_require__(5);
 
 function InterceptorManager() {
   this.handlers = [];
@@ -910,16 +875,16 @@ module.exports = InterceptorManager;
 
 
 /***/ }),
-/* 11 */
+/* 10 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
-var transformData = __webpack_require__(12);
-var isCancel = __webpack_require__(13);
-var defaults = __webpack_require__(14);
+var utils = __webpack_require__(5);
+var transformData = __webpack_require__(11);
+var isCancel = __webpack_require__(12);
+var defaults = __webpack_require__(13);
 
 /**
  * Throws a `Cancel` if cancellation has been requested.
@@ -996,13 +961,13 @@ module.exports = function dispatchRequest(config) {
 
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
+var utils = __webpack_require__(5);
 
 /**
  * Transform the data for a request or a response
@@ -1023,7 +988,7 @@ module.exports = function transformData(data, headers, fns) {
 
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ ((module) => {
 
 "use strict";
@@ -1035,14 +1000,14 @@ module.exports = function isCancel(value) {
 
 
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
-var normalizeHeaderName = __webpack_require__(15);
+var utils = __webpack_require__(5);
+var normalizeHeaderName = __webpack_require__(14);
 
 var DEFAULT_CONTENT_TYPE = {
   'Content-Type': 'application/x-www-form-urlencoded'
@@ -1058,10 +1023,10 @@ function getDefaultAdapter() {
   var adapter;
   if (typeof XMLHttpRequest !== 'undefined') {
     // For browsers use XHR adapter
-    adapter = __webpack_require__(16);
+    adapter = __webpack_require__(15);
   } else if (typeof process !== 'undefined' && Object.prototype.toString.call(process) === '[object process]') {
     // For node use HTTP adapter
-    adapter = __webpack_require__(26);
+    adapter = __webpack_require__(25);
   }
   return adapter;
 }
@@ -1140,13 +1105,13 @@ module.exports = defaults;
 
 
 /***/ }),
-/* 15 */
+/* 14 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
+var utils = __webpack_require__(5);
 
 module.exports = function normalizeHeaderName(headers, normalizedName) {
   utils.forEach(headers, function processHeader(value, name) {
@@ -1159,20 +1124,20 @@ module.exports = function normalizeHeaderName(headers, normalizedName) {
 
 
 /***/ }),
-/* 16 */
+/* 15 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
-var settle = __webpack_require__(17);
-var cookies = __webpack_require__(20);
-var buildURL = __webpack_require__(9);
-var buildFullPath = __webpack_require__(21);
-var parseHeaders = __webpack_require__(24);
-var isURLSameOrigin = __webpack_require__(25);
-var createError = __webpack_require__(18);
+var utils = __webpack_require__(5);
+var settle = __webpack_require__(16);
+var cookies = __webpack_require__(19);
+var buildURL = __webpack_require__(8);
+var buildFullPath = __webpack_require__(20);
+var parseHeaders = __webpack_require__(23);
+var isURLSameOrigin = __webpack_require__(24);
+var createError = __webpack_require__(17);
 
 module.exports = function xhrAdapter(config) {
   return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -1345,13 +1310,13 @@ module.exports = function xhrAdapter(config) {
 
 
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var createError = __webpack_require__(18);
+var createError = __webpack_require__(17);
 
 /**
  * Resolve or reject a Promise based on response status.
@@ -1377,13 +1342,13 @@ module.exports = function settle(resolve, reject, response) {
 
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var enhanceError = __webpack_require__(19);
+var enhanceError = __webpack_require__(18);
 
 /**
  * Create an Error with the specified message, config, error code, request and response.
@@ -1402,7 +1367,7 @@ module.exports = function createError(message, config, code, request, response) 
 
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ ((module) => {
 
 "use strict";
@@ -1451,13 +1416,13 @@ module.exports = function enhanceError(error, config, code, request, response) {
 
 
 /***/ }),
-/* 20 */
+/* 19 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
+var utils = __webpack_require__(5);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -1511,14 +1476,14 @@ module.exports = (
 
 
 /***/ }),
-/* 21 */
+/* 20 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var isAbsoluteURL = __webpack_require__(22);
-var combineURLs = __webpack_require__(23);
+var isAbsoluteURL = __webpack_require__(21);
+var combineURLs = __webpack_require__(22);
 
 /**
  * Creates a new URL by combining the baseURL with the requestedURL,
@@ -1538,7 +1503,7 @@ module.exports = function buildFullPath(baseURL, requestedURL) {
 
 
 /***/ }),
-/* 22 */
+/* 21 */
 /***/ ((module) => {
 
 "use strict";
@@ -1559,7 +1524,7 @@ module.exports = function isAbsoluteURL(url) {
 
 
 /***/ }),
-/* 23 */
+/* 22 */
 /***/ ((module) => {
 
 "use strict";
@@ -1580,13 +1545,13 @@ module.exports = function combineURLs(baseURL, relativeURL) {
 
 
 /***/ }),
-/* 24 */
+/* 23 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
+var utils = __webpack_require__(5);
 
 // Headers whose duplicates are ignored by node
 // c.f. https://nodejs.org/api/http.html#http_message_headers
@@ -1640,13 +1605,13 @@ module.exports = function parseHeaders(headers) {
 
 
 /***/ }),
-/* 25 */
+/* 24 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
+var utils = __webpack_require__(5);
 
 module.exports = (
   utils.isStandardBrowserEnv() ?
@@ -1715,25 +1680,25 @@ module.exports = (
 
 
 /***/ }),
-/* 26 */
+/* 25 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
-var settle = __webpack_require__(17);
-var buildFullPath = __webpack_require__(21);
-var buildURL = __webpack_require__(9);
-var http = __webpack_require__(27);
-var https = __webpack_require__(28);
-var httpFollow = __webpack_require__(29).http;
-var httpsFollow = __webpack_require__(29).https;
-var url = __webpack_require__(30);
-var zlib = __webpack_require__(44);
-var pkg = __webpack_require__(45);
-var createError = __webpack_require__(18);
-var enhanceError = __webpack_require__(19);
+var utils = __webpack_require__(5);
+var settle = __webpack_require__(16);
+var buildFullPath = __webpack_require__(20);
+var buildURL = __webpack_require__(8);
+var http = __webpack_require__(26);
+var https = __webpack_require__(27);
+var httpFollow = __webpack_require__(28).http;
+var httpsFollow = __webpack_require__(28).https;
+var url = __webpack_require__(29);
+var zlib = __webpack_require__(43);
+var pkg = __webpack_require__(44);
+var createError = __webpack_require__(17);
+var enhanceError = __webpack_require__(18);
 
 var isHttps = /https:?/;
 
@@ -2025,30 +1990,30 @@ module.exports = function httpAdapter(config) {
 
 
 /***/ }),
-/* 27 */
+/* 26 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("http");;
 
 /***/ }),
-/* 28 */
+/* 27 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("https");;
 
 /***/ }),
-/* 29 */
+/* 28 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var url = __webpack_require__(30);
+var url = __webpack_require__(29);
 var URL = url.URL;
-var http = __webpack_require__(27);
-var https = __webpack_require__(28);
-var Writable = __webpack_require__(31).Writable;
-var assert = __webpack_require__(32);
-var debug = __webpack_require__(33);
+var http = __webpack_require__(26);
+var https = __webpack_require__(27);
+var Writable = __webpack_require__(30).Writable;
+var assert = __webpack_require__(31);
+var debug = __webpack_require__(32);
 
 // Create handlers that pass events from native requests
 var events = ["abort", "aborted", "connect", "error", "socket", "timeout"];
@@ -2576,28 +2541,28 @@ module.exports.wrap = wrap;
 
 
 /***/ }),
-/* 30 */
+/* 29 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("url");;
 
 /***/ }),
-/* 31 */
+/* 30 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("stream");;
 
 /***/ }),
-/* 32 */
+/* 31 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("assert");;
 
 /***/ }),
-/* 33 */
+/* 32 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var debug;
@@ -2606,7 +2571,7 @@ module.exports = function () {
   if (!debug) {
     try {
       /* eslint global-require: off */
-      debug = __webpack_require__(34)("follow-redirects");
+      debug = __webpack_require__(33)("follow-redirects");
     }
     catch (error) {
       debug = function () { /* */ };
@@ -2617,7 +2582,7 @@ module.exports = function () {
 
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 /**
@@ -2626,14 +2591,14 @@ module.exports = function () {
  */
 
 if (typeof process === 'undefined' || process.type === 'renderer' || process.browser === true || process.__nwjs) {
-	module.exports = __webpack_require__(35);
+	module.exports = __webpack_require__(34);
 } else {
-	module.exports = __webpack_require__(38);
+	module.exports = __webpack_require__(37);
 }
 
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /* eslint-env browser */
@@ -2890,7 +2855,7 @@ function localstorage() {
 	}
 }
 
-module.exports = __webpack_require__(36)(exports);
+module.exports = __webpack_require__(35)(exports);
 
 const {formatters} = module.exports;
 
@@ -2908,7 +2873,7 @@ formatters.j = function (v) {
 
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 
@@ -2924,7 +2889,7 @@ function setup(env) {
 	createDebug.disable = disable;
 	createDebug.enable = enable;
 	createDebug.enabled = enabled;
-	createDebug.humanize = __webpack_require__(37);
+	createDebug.humanize = __webpack_require__(36);
 	createDebug.destroy = destroy;
 
 	Object.keys(env).forEach(key => {
@@ -3175,7 +3140,7 @@ module.exports = setup;
 
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ ((module) => {
 
 /**
@@ -3343,15 +3308,15 @@ function plural(ms, msAbs, n, name) {
 
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ ((module, exports, __webpack_require__) => {
 
 /**
  * Module dependencies.
  */
 
-const tty = __webpack_require__(39);
-const util = __webpack_require__(40);
+const tty = __webpack_require__(38);
+const util = __webpack_require__(39);
 
 /**
  * This is the Node.js implementation of `debug()`.
@@ -3377,7 +3342,7 @@ exports.colors = [6, 2, 3, 4, 5, 1];
 try {
 	// Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
 	// eslint-disable-next-line import/no-extraneous-dependencies
-	const supportsColor = __webpack_require__(41);
+	const supportsColor = __webpack_require__(40);
 
 	if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
 		exports.colors = [
@@ -3585,7 +3550,7 @@ function init(debug) {
 	}
 }
 
-module.exports = __webpack_require__(36)(exports);
+module.exports = __webpack_require__(35)(exports);
 
 const {formatters} = module.exports;
 
@@ -3612,28 +3577,28 @@ formatters.O = function (v) {
 
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("tty");;
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("util");;
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
-const os = __webpack_require__(42);
-const tty = __webpack_require__(39);
-const hasFlag = __webpack_require__(43);
+const os = __webpack_require__(41);
+const tty = __webpack_require__(38);
+const hasFlag = __webpack_require__(42);
 
 const {env} = process;
 
@@ -3768,14 +3733,14 @@ module.exports = {
 
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("os");;
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ ((module) => {
 
 "use strict";
@@ -3790,27 +3755,27 @@ module.exports = (flag, argv = process.argv) => {
 
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("zlib");;
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = JSON.parse('{"name":"axios","version":"0.21.1","description":"Promise based HTTP client for the browser and node.js","main":"index.js","scripts":{"test":"grunt test && bundlesize","start":"node ./sandbox/server.js","build":"NODE_ENV=production grunt build","preversion":"npm test","version":"npm run build && grunt version && git add -A dist && git add CHANGELOG.md bower.json package.json","postversion":"git push && git push --tags","examples":"node ./examples/server.js","coveralls":"cat coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js","fix":"eslint --fix lib/**/*.js"},"repository":{"type":"git","url":"https://github.com/axios/axios.git"},"keywords":["xhr","http","ajax","promise","node"],"author":"Matt Zabriskie","license":"MIT","bugs":{"url":"https://github.com/axios/axios/issues"},"homepage":"https://github.com/axios/axios","devDependencies":{"bundlesize":"^0.17.0","coveralls":"^3.0.0","es6-promise":"^4.2.4","grunt":"^1.0.2","grunt-banner":"^0.6.0","grunt-cli":"^1.2.0","grunt-contrib-clean":"^1.1.0","grunt-contrib-watch":"^1.0.0","grunt-eslint":"^20.1.0","grunt-karma":"^2.0.0","grunt-mocha-test":"^0.13.3","grunt-ts":"^6.0.0-beta.19","grunt-webpack":"^1.0.18","istanbul-instrumenter-loader":"^1.0.0","jasmine-core":"^2.4.1","karma":"^1.3.0","karma-chrome-launcher":"^2.2.0","karma-coverage":"^1.1.1","karma-firefox-launcher":"^1.1.0","karma-jasmine":"^1.1.1","karma-jasmine-ajax":"^0.1.13","karma-opera-launcher":"^1.0.0","karma-safari-launcher":"^1.0.0","karma-sauce-launcher":"^1.2.0","karma-sinon":"^1.0.5","karma-sourcemap-loader":"^0.3.7","karma-webpack":"^1.7.0","load-grunt-tasks":"^3.5.2","minimist":"^1.2.0","mocha":"^5.2.0","sinon":"^4.5.0","typescript":"^2.8.1","url-search-params":"^0.10.0","webpack":"^1.13.1","webpack-dev-server":"^1.14.1"},"browser":{"./lib/adapters/http.js":"./lib/adapters/xhr.js"},"jsdelivr":"dist/axios.min.js","unpkg":"dist/axios.min.js","typings":"./index.d.ts","dependencies":{"follow-redirects":"^1.10.0"},"bundlesize":[{"path":"./dist/axios.min.js","threshold":"5kB"}]}');
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var utils = __webpack_require__(6);
+var utils = __webpack_require__(5);
 
 /**
  * Config-specific merge-function which creates a new config-object
@@ -3898,7 +3863,7 @@ module.exports = function mergeConfig(config1, config2) {
 
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ ((module) => {
 
 "use strict";
@@ -3924,13 +3889,13 @@ module.exports = Cancel;
 
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Cancel = __webpack_require__(47);
+var Cancel = __webpack_require__(46);
 
 /**
  * A `CancelToken` is an object that can be used to request cancellation of an operation.
@@ -3988,7 +3953,7 @@ module.exports = CancelToken;
 
 
 /***/ }),
-/* 49 */
+/* 48 */
 /***/ ((module) => {
 
 "use strict";
@@ -4022,7 +3987,7 @@ module.exports = function spread(callback) {
 
 
 /***/ }),
-/* 50 */
+/* 49 */
 /***/ ((module) => {
 
 "use strict";
@@ -4040,7 +4005,7 @@ module.exports = function isAxiosError(payload) {
 
 
 /***/ }),
-/* 51 */
+/* 50 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4053,7 +4018,7 @@ exports.multipleDependenciesFinder = void 0;
 *********************************************************************************************************************************
 *********************************************************************************************************************************/
 const vscode = __webpack_require__(1);
-var pomParser = __webpack_require__(52);
+var pomParser = __webpack_require__(51);
 /* Find all pom file in the workspace and parse all pom file
 *  and at the end it add all dependencies into the response const
 *
@@ -4096,7 +4061,7 @@ exports.multipleDependenciesFinder = multipleDependenciesFinder;
 
 
 /***/ }),
-/* 52 */
+/* 51 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -4104,9 +4069,9 @@ exports.multipleDependenciesFinder = multipleDependenciesFinder;
 
 
 
-const fs = __webpack_require__(53);
-var xml2js = __webpack_require__(54);
-var traverse = __webpack_require__(97);
+const fs = __webpack_require__(52);
+var xml2js = __webpack_require__(53);
+var traverse = __webpack_require__(96);
 
 // xmljs options https://github.com/Leonidas-from-XIV/node-xml2js#options
 var XML2JS_OPTS = {
@@ -4210,14 +4175,14 @@ function readFileAsync(path, encoding) {
 
 
 /***/ }),
-/* 53 */
+/* 52 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("fs");;
 
 /***/ }),
-/* 54 */
+/* 53 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4227,13 +4192,13 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  defaults = __webpack_require__(55);
+  defaults = __webpack_require__(54);
 
-  builder = __webpack_require__(56);
+  builder = __webpack_require__(55);
 
-  parser = __webpack_require__(90);
+  parser = __webpack_require__(89);
 
-  processors = __webpack_require__(95);
+  processors = __webpack_require__(94);
 
   exports.defaults = defaults.defaults;
 
@@ -4262,7 +4227,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 55 */
+/* 54 */
 /***/ (function(__unused_webpack_module, exports) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4340,7 +4305,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 56 */
+/* 55 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4349,9 +4314,9 @@ module.exports = require("fs");;
   var builder, defaults, escapeCDATA, requiresCDATA, wrapCDATA,
     hasProp = {}.hasOwnProperty;
 
-  builder = __webpack_require__(57);
+  builder = __webpack_require__(56);
 
-  defaults = __webpack_require__(55).defaults;
+  defaults = __webpack_require__(54).defaults;
 
   requiresCDATA = function(entry) {
     return typeof entry === "string" && (entry.indexOf('&') >= 0 || entry.indexOf('>') >= 0 || entry.indexOf('<') >= 0);
@@ -4473,28 +4438,28 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 57 */
+/* 56 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
 (function() {
   var NodeType, WriterState, XMLDOMImplementation, XMLDocument, XMLDocumentCB, XMLStreamWriter, XMLStringWriter, assign, isFunction, ref;
 
-  ref = __webpack_require__(58), assign = ref.assign, isFunction = ref.isFunction;
+  ref = __webpack_require__(57), assign = ref.assign, isFunction = ref.isFunction;
 
-  XMLDOMImplementation = __webpack_require__(59);
+  XMLDOMImplementation = __webpack_require__(58);
 
-  XMLDocument = __webpack_require__(60);
+  XMLDocument = __webpack_require__(59);
 
-  XMLDocumentCB = __webpack_require__(88);
+  XMLDocumentCB = __webpack_require__(87);
 
-  XMLStringWriter = __webpack_require__(85);
+  XMLStringWriter = __webpack_require__(84);
 
-  XMLStreamWriter = __webpack_require__(89);
+  XMLStreamWriter = __webpack_require__(88);
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  WriterState = __webpack_require__(87);
+  WriterState = __webpack_require__(86);
 
   module.exports.create = function(name, xmldec, doctype, options) {
     var doc, root;
@@ -4544,7 +4509,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 58 */
+/* 57 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4633,7 +4598,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 59 */
+/* 58 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4671,7 +4636,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 60 */
+/* 59 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -4680,19 +4645,19 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isPlainObject = __webpack_require__(58).isPlainObject;
+  isPlainObject = __webpack_require__(57).isPlainObject;
 
-  XMLDOMImplementation = __webpack_require__(59);
+  XMLDOMImplementation = __webpack_require__(58);
 
-  XMLDOMConfiguration = __webpack_require__(61);
+  XMLDOMConfiguration = __webpack_require__(60);
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLStringifier = __webpack_require__(84);
+  XMLStringifier = __webpack_require__(83);
 
-  XMLStringWriter = __webpack_require__(85);
+  XMLStringWriter = __webpack_require__(84);
 
   module.exports = XMLDocument = (function(superClass) {
     extend(XMLDocument, superClass);
@@ -4919,16 +4884,16 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 61 */
+/* 60 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
 (function() {
   var XMLDOMConfiguration, XMLDOMErrorHandler, XMLDOMStringList;
 
-  XMLDOMErrorHandler = __webpack_require__(62);
+  XMLDOMErrorHandler = __webpack_require__(61);
 
-  XMLDOMStringList = __webpack_require__(63);
+  XMLDOMStringList = __webpack_require__(62);
 
   module.exports = XMLDOMConfiguration = (function() {
     function XMLDOMConfiguration() {
@@ -4989,7 +4954,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 62 */
+/* 61 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5011,7 +4976,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 63 */
+/* 62 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5045,7 +5010,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 64 */
+/* 63 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5053,7 +5018,7 @@ module.exports = require("fs");;
   var DocumentPosition, NodeType, XMLCData, XMLComment, XMLDeclaration, XMLDocType, XMLDummy, XMLElement, XMLNamedNodeMap, XMLNode, XMLNodeList, XMLProcessingInstruction, XMLRaw, XMLText, getValue, isEmpty, isFunction, isObject, ref1,
     hasProp = {}.hasOwnProperty;
 
-  ref1 = __webpack_require__(58), isObject = ref1.isObject, isFunction = ref1.isFunction, isEmpty = ref1.isEmpty, getValue = ref1.getValue;
+  ref1 = __webpack_require__(57), isObject = ref1.isObject, isFunction = ref1.isFunction, isEmpty = ref1.isEmpty, getValue = ref1.getValue;
 
   XMLElement = null;
 
@@ -5092,19 +5057,19 @@ module.exports = require("fs");;
       this.children = [];
       this.baseURI = null;
       if (!XMLElement) {
-        XMLElement = __webpack_require__(65);
-        XMLCData = __webpack_require__(69);
-        XMLComment = __webpack_require__(71);
-        XMLDeclaration = __webpack_require__(72);
-        XMLDocType = __webpack_require__(73);
-        XMLRaw = __webpack_require__(78);
-        XMLText = __webpack_require__(79);
-        XMLProcessingInstruction = __webpack_require__(80);
-        XMLDummy = __webpack_require__(81);
-        NodeType = __webpack_require__(66);
-        XMLNodeList = __webpack_require__(82);
-        XMLNamedNodeMap = __webpack_require__(68);
-        DocumentPosition = __webpack_require__(83);
+        XMLElement = __webpack_require__(64);
+        XMLCData = __webpack_require__(68);
+        XMLComment = __webpack_require__(70);
+        XMLDeclaration = __webpack_require__(71);
+        XMLDocType = __webpack_require__(72);
+        XMLRaw = __webpack_require__(77);
+        XMLText = __webpack_require__(78);
+        XMLProcessingInstruction = __webpack_require__(79);
+        XMLDummy = __webpack_require__(80);
+        NodeType = __webpack_require__(65);
+        XMLNodeList = __webpack_require__(81);
+        XMLNamedNodeMap = __webpack_require__(67);
+        DocumentPosition = __webpack_require__(82);
       }
     }
 
@@ -5836,7 +5801,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 65 */
+/* 64 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -5845,15 +5810,15 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  ref = __webpack_require__(58), isObject = ref.isObject, isFunction = ref.isFunction, getValue = ref.getValue;
+  ref = __webpack_require__(57), isObject = ref.isObject, isFunction = ref.isFunction, getValue = ref.getValue;
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLAttribute = __webpack_require__(67);
+  XMLAttribute = __webpack_require__(66);
 
-  XMLNamedNodeMap = __webpack_require__(68);
+  XMLNamedNodeMap = __webpack_require__(67);
 
   module.exports = XMLElement = (function(superClass) {
     extend(XMLElement, superClass);
@@ -6140,7 +6105,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 66 */
+/* 65 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6169,16 +6134,16 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 67 */
+/* 66 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
 (function() {
   var NodeType, XMLAttribute, XMLNode;
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
   module.exports = XMLAttribute = (function() {
     function XMLAttribute(parent, name, value) {
@@ -6283,7 +6248,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 68 */
+/* 67 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6347,7 +6312,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 69 */
+/* 68 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6356,9 +6321,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLCharacterData = __webpack_require__(70);
+  XMLCharacterData = __webpack_require__(69);
 
   module.exports = XMLCData = (function(superClass) {
     extend(XMLCData, superClass);
@@ -6389,7 +6354,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 70 */
+/* 69 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6398,7 +6363,7 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
   module.exports = XMLCharacterData = (function(superClass) {
     extend(XMLCharacterData, superClass);
@@ -6474,7 +6439,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 71 */
+/* 70 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6483,9 +6448,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLCharacterData = __webpack_require__(70);
+  XMLCharacterData = __webpack_require__(69);
 
   module.exports = XMLComment = (function(superClass) {
     extend(XMLComment, superClass);
@@ -6516,7 +6481,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 72 */
+/* 71 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6525,11 +6490,11 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isObject = __webpack_require__(58).isObject;
+  isObject = __webpack_require__(57).isObject;
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
   module.exports = XMLDeclaration = (function(superClass) {
     extend(XMLDeclaration, superClass);
@@ -6565,7 +6530,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 73 */
+/* 72 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6574,21 +6539,21 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isObject = __webpack_require__(58).isObject;
+  isObject = __webpack_require__(57).isObject;
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLDTDAttList = __webpack_require__(74);
+  XMLDTDAttList = __webpack_require__(73);
 
-  XMLDTDEntity = __webpack_require__(75);
+  XMLDTDEntity = __webpack_require__(74);
 
-  XMLDTDElement = __webpack_require__(76);
+  XMLDTDElement = __webpack_require__(75);
 
-  XMLDTDNotation = __webpack_require__(77);
+  XMLDTDNotation = __webpack_require__(76);
 
-  XMLNamedNodeMap = __webpack_require__(68);
+  XMLNamedNodeMap = __webpack_require__(67);
 
   module.exports = XMLDocType = (function(superClass) {
     extend(XMLDocType, superClass);
@@ -6757,7 +6722,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 74 */
+/* 73 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6766,9 +6731,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
   module.exports = XMLDTDAttList = (function(superClass) {
     extend(XMLDTDAttList, superClass);
@@ -6818,7 +6783,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 75 */
+/* 74 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6827,11 +6792,11 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  isObject = __webpack_require__(58).isObject;
+  isObject = __webpack_require__(57).isObject;
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
   module.exports = XMLDTDEntity = (function(superClass) {
     extend(XMLDTDEntity, superClass);
@@ -6921,7 +6886,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 76 */
+/* 75 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6930,9 +6895,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
   module.exports = XMLDTDElement = (function(superClass) {
     extend(XMLDTDElement, superClass);
@@ -6965,7 +6930,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 77 */
+/* 76 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -6974,9 +6939,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
   module.exports = XMLDTDNotation = (function(superClass) {
     extend(XMLDTDNotation, superClass);
@@ -7023,7 +6988,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 78 */
+/* 77 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7032,9 +6997,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
   module.exports = XMLRaw = (function(superClass) {
     extend(XMLRaw, superClass);
@@ -7064,7 +7029,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 79 */
+/* 78 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7073,9 +7038,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLCharacterData = __webpack_require__(70);
+  XMLCharacterData = __webpack_require__(69);
 
   module.exports = XMLText = (function(superClass) {
     extend(XMLText, superClass);
@@ -7139,7 +7104,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 80 */
+/* 79 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7148,9 +7113,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLCharacterData = __webpack_require__(70);
+  XMLCharacterData = __webpack_require__(69);
 
   module.exports = XMLProcessingInstruction = (function(superClass) {
     extend(XMLProcessingInstruction, superClass);
@@ -7194,7 +7159,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 81 */
+/* 80 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7203,9 +7168,9 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLNode = __webpack_require__(64);
+  XMLNode = __webpack_require__(63);
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
   module.exports = XMLDummy = (function(superClass) {
     extend(XMLDummy, superClass);
@@ -7231,7 +7196,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 82 */
+/* 81 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7265,7 +7230,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 83 */
+/* 82 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7283,7 +7248,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 84 */
+/* 83 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7529,7 +7494,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 85 */
+/* 84 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7538,7 +7503,7 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  XMLWriterBase = __webpack_require__(86);
+  XMLWriterBase = __webpack_require__(85);
 
   module.exports = XMLStringWriter = (function(superClass) {
     extend(XMLStringWriter, superClass);
@@ -7570,7 +7535,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 86 */
+/* 85 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -7578,37 +7543,37 @@ module.exports = require("fs");;
   var NodeType, WriterState, XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLDummy, XMLElement, XMLProcessingInstruction, XMLRaw, XMLText, XMLWriterBase, assign,
     hasProp = {}.hasOwnProperty;
 
-  assign = __webpack_require__(58).assign;
+  assign = __webpack_require__(57).assign;
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLDeclaration = __webpack_require__(72);
+  XMLDeclaration = __webpack_require__(71);
 
-  XMLDocType = __webpack_require__(73);
+  XMLDocType = __webpack_require__(72);
 
-  XMLCData = __webpack_require__(69);
+  XMLCData = __webpack_require__(68);
 
-  XMLComment = __webpack_require__(71);
+  XMLComment = __webpack_require__(70);
 
-  XMLElement = __webpack_require__(65);
+  XMLElement = __webpack_require__(64);
 
-  XMLRaw = __webpack_require__(78);
+  XMLRaw = __webpack_require__(77);
 
-  XMLText = __webpack_require__(79);
+  XMLText = __webpack_require__(78);
 
-  XMLProcessingInstruction = __webpack_require__(80);
+  XMLProcessingInstruction = __webpack_require__(79);
 
-  XMLDummy = __webpack_require__(81);
+  XMLDummy = __webpack_require__(80);
 
-  XMLDTDAttList = __webpack_require__(74);
+  XMLDTDAttList = __webpack_require__(73);
 
-  XMLDTDElement = __webpack_require__(76);
+  XMLDTDElement = __webpack_require__(75);
 
-  XMLDTDEntity = __webpack_require__(75);
+  XMLDTDEntity = __webpack_require__(74);
 
-  XMLDTDNotation = __webpack_require__(77);
+  XMLDTDNotation = __webpack_require__(76);
 
-  WriterState = __webpack_require__(87);
+  WriterState = __webpack_require__(86);
 
   module.exports = XMLWriterBase = (function() {
     function XMLWriterBase(options) {
@@ -8004,7 +7969,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 87 */
+/* 86 */
 /***/ (function(module) {
 
 // Generated by CoffeeScript 1.12.7
@@ -8020,7 +7985,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 88 */
+/* 87 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -8028,43 +7993,43 @@ module.exports = require("fs");;
   var NodeType, WriterState, XMLAttribute, XMLCData, XMLComment, XMLDTDAttList, XMLDTDElement, XMLDTDEntity, XMLDTDNotation, XMLDeclaration, XMLDocType, XMLDocument, XMLDocumentCB, XMLElement, XMLProcessingInstruction, XMLRaw, XMLStringWriter, XMLStringifier, XMLText, getValue, isFunction, isObject, isPlainObject, ref,
     hasProp = {}.hasOwnProperty;
 
-  ref = __webpack_require__(58), isObject = ref.isObject, isFunction = ref.isFunction, isPlainObject = ref.isPlainObject, getValue = ref.getValue;
+  ref = __webpack_require__(57), isObject = ref.isObject, isFunction = ref.isFunction, isPlainObject = ref.isPlainObject, getValue = ref.getValue;
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLDocument = __webpack_require__(60);
+  XMLDocument = __webpack_require__(59);
 
-  XMLElement = __webpack_require__(65);
+  XMLElement = __webpack_require__(64);
 
-  XMLCData = __webpack_require__(69);
+  XMLCData = __webpack_require__(68);
 
-  XMLComment = __webpack_require__(71);
+  XMLComment = __webpack_require__(70);
 
-  XMLRaw = __webpack_require__(78);
+  XMLRaw = __webpack_require__(77);
 
-  XMLText = __webpack_require__(79);
+  XMLText = __webpack_require__(78);
 
-  XMLProcessingInstruction = __webpack_require__(80);
+  XMLProcessingInstruction = __webpack_require__(79);
 
-  XMLDeclaration = __webpack_require__(72);
+  XMLDeclaration = __webpack_require__(71);
 
-  XMLDocType = __webpack_require__(73);
+  XMLDocType = __webpack_require__(72);
 
-  XMLDTDAttList = __webpack_require__(74);
+  XMLDTDAttList = __webpack_require__(73);
 
-  XMLDTDEntity = __webpack_require__(75);
+  XMLDTDEntity = __webpack_require__(74);
 
-  XMLDTDElement = __webpack_require__(76);
+  XMLDTDElement = __webpack_require__(75);
 
-  XMLDTDNotation = __webpack_require__(77);
+  XMLDTDNotation = __webpack_require__(76);
 
-  XMLAttribute = __webpack_require__(67);
+  XMLAttribute = __webpack_require__(66);
 
-  XMLStringifier = __webpack_require__(84);
+  XMLStringifier = __webpack_require__(83);
 
-  XMLStringWriter = __webpack_require__(85);
+  XMLStringWriter = __webpack_require__(84);
 
-  WriterState = __webpack_require__(87);
+  WriterState = __webpack_require__(86);
 
   module.exports = XMLDocumentCB = (function() {
     function XMLDocumentCB(options, onData, onEnd) {
@@ -8554,7 +8519,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 89 */
+/* 88 */
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -8563,11 +8528,11 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  NodeType = __webpack_require__(66);
+  NodeType = __webpack_require__(65);
 
-  XMLWriterBase = __webpack_require__(86);
+  XMLWriterBase = __webpack_require__(85);
 
-  WriterState = __webpack_require__(87);
+  WriterState = __webpack_require__(86);
 
   module.exports = XMLStreamWriter = (function(superClass) {
     extend(XMLStreamWriter, superClass);
@@ -8736,7 +8701,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 90 */
+/* 89 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 // Generated by CoffeeScript 1.12.7
@@ -8747,17 +8712,17 @@ module.exports = require("fs");;
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  sax = __webpack_require__(91);
+  sax = __webpack_require__(90);
 
-  events = __webpack_require__(93);
+  events = __webpack_require__(92);
 
-  bom = __webpack_require__(94);
+  bom = __webpack_require__(93);
 
-  processors = __webpack_require__(95);
+  processors = __webpack_require__(94);
 
-  setImmediate = __webpack_require__(96).setImmediate;
+  setImmediate = __webpack_require__(95).setImmediate;
 
-  defaults = __webpack_require__(55).defaults;
+  defaults = __webpack_require__(54).defaults;
 
   isEmpty = function(thing) {
     return typeof thing === "object" && (thing != null) && Object.keys(thing).length === 0;
@@ -9123,7 +9088,7 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 91 */
+/* 90 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 ;(function (sax) { // wrapper for non-node envs
@@ -9288,7 +9253,7 @@ module.exports = require("fs");;
 
   var Stream
   try {
-    Stream = __webpack_require__(31).Stream
+    Stream = __webpack_require__(30).Stream
   } catch (ex) {
     Stream = function () {}
   }
@@ -9358,7 +9323,7 @@ module.exports = require("fs");;
       typeof Buffer.isBuffer === 'function' &&
       Buffer.isBuffer(data)) {
       if (!this._decoder) {
-        var SD = __webpack_require__(92).StringDecoder
+        var SD = __webpack_require__(91).StringDecoder
         this._decoder = new SD('utf8')
       }
       data = this._decoder.write(data)
@@ -10694,21 +10659,21 @@ module.exports = require("fs");;
 
 
 /***/ }),
-/* 92 */
+/* 91 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("string_decoder");;
 
 /***/ }),
-/* 93 */
+/* 92 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("events");;
 
 /***/ }),
-/* 94 */
+/* 93 */
 /***/ (function(__unused_webpack_module, exports) {
 
 // Generated by CoffeeScript 1.12.7
@@ -10726,7 +10691,7 @@ module.exports = require("events");;
 
 
 /***/ }),
-/* 95 */
+/* 94 */
 /***/ (function(__unused_webpack_module, exports) {
 
 // Generated by CoffeeScript 1.12.7
@@ -10766,14 +10731,14 @@ module.exports = require("events");;
 
 
 /***/ }),
-/* 96 */
+/* 95 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("timers");;
 
 /***/ }),
-/* 97 */
+/* 96 */
 /***/ ((module) => {
 
 var traverse = module.exports = function (obj) {
@@ -11093,7 +11058,7 @@ var hasOwnProperty = Object.hasOwnProperty || function (obj, key) {
 
 
 /***/ }),
-/* 98 */
+/* 97 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -11106,9 +11071,9 @@ var hasOwnProperty = Object.hasOwnProperty || function (obj, key) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.reccomendListUI = void 0;
 const vscode = __webpack_require__(1);
-const listComponent_1 = __webpack_require__(99);
-const pomAddingLibrary_1 = __webpack_require__(100);
-function reccomendListUI(libRac, context, storageManager) {
+const listComponent_1 = __webpack_require__(98);
+const pomAddingLibrary_1 = __webpack_require__(99);
+function reccomendListUI(libRac, context) {
     const panel = vscode.window.createWebviewPanel('Rac', 'Racommander', vscode.ViewColumn.One, {
         enableScripts: true
     });
@@ -11136,7 +11101,7 @@ exports.reccomendListUI = reccomendListUI;
 
 
 /***/ }),
-/* 99 */
+/* 98 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -11235,7 +11200,7 @@ function deserializerRac(libRac) {
 
 
 /***/ }),
-/* 100 */
+/* 99 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -11250,25 +11215,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.addDependencyHandler = exports.applyDependencySelected = void 0;
+exports.addDependencyHandler = void 0;
 /********************************************************************************************************************************
 *********************************************************************************************************************************
 *                                           START POM RECOMMEND
 *********************************************************************************************************************************
 *********************************************************************************************************************************/
-const fse = __webpack_require__(101);
+const fse = __webpack_require__(100);
 const vscode = __webpack_require__(1);
-const lexerUtils_1 = __webpack_require__(141);
-const artifactService_1 = __webpack_require__(143);
+const lexerUtils_1 = __webpack_require__(140);
+const artifactService_1 = __webpack_require__(142);
 //import { selectProjectIfNecessary } from "../utils/uiUtils";
-function applyDependencySelected(params, options) {
-    return __awaiter(this, void 0, void 0, function* () {
-        params.forEach((element) => {
-            addDependencyHandler(options, element);
-        });
-    });
-}
-exports.applyDependencySelected = applyDependencySelected;
 function addDependencyHandler(options, dependencies) {
     return __awaiter(this, void 0, void 0, function* () {
         let pomPath = '';
@@ -11316,7 +11273,7 @@ function addDependencyHandler(options, dependencies) {
             if (!selectedDoc) {
                 continue;
             }
-            addDependency(pomPath, selectedDoc.g, selectedDoc.a, selectedDoc.latestVersion);
+            yield addDependency(pomPath, selectedDoc.g, selectedDoc.a, selectedDoc.latestVersion);
         }
     });
 }
@@ -11400,40 +11357,40 @@ function getIndentation(document, offset) {
 *********************************************************************************************************************************
 *                                           FINISH POM RECOMMEND
 *********************************************************************************************************************************
-*********************************************************************************************************************************/ 
+*********************************************************************************************************************************/
 
 
 /***/ }),
-/* 101 */
+/* 100 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const assign = __webpack_require__(102)
+const assign = __webpack_require__(101)
 
 const fs = {}
 
 // Export graceful-fs:
-assign(fs, __webpack_require__(103))
+assign(fs, __webpack_require__(102))
 // Export extra methods:
-assign(fs, __webpack_require__(110))
-assign(fs, __webpack_require__(120))
-assign(fs, __webpack_require__(115))
-assign(fs, __webpack_require__(124))
-assign(fs, __webpack_require__(126))
+assign(fs, __webpack_require__(109))
+assign(fs, __webpack_require__(119))
+assign(fs, __webpack_require__(114))
+assign(fs, __webpack_require__(123))
+assign(fs, __webpack_require__(125))
+assign(fs, __webpack_require__(130))
 assign(fs, __webpack_require__(131))
 assign(fs, __webpack_require__(132))
 assign(fs, __webpack_require__(133))
-assign(fs, __webpack_require__(134))
-assign(fs, __webpack_require__(140))
-assign(fs, __webpack_require__(119))
+assign(fs, __webpack_require__(139))
+assign(fs, __webpack_require__(118))
 
 module.exports = fs
 
 
 /***/ }),
-/* 102 */
+/* 101 */
 /***/ ((module) => {
 
 "use strict";
@@ -11456,13 +11413,13 @@ module.exports = assign
 
 
 /***/ }),
-/* 103 */
+/* 102 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 // This is adapted from https://github.com/normalize/mz
 // Copyright (c) 2014-2016 Jonathan Ong me@jongleberry.com and Contributors
-const u = __webpack_require__(104).fromCallback
-const fs = __webpack_require__(105)
+const u = __webpack_require__(103).fromCallback
+const fs = __webpack_require__(104)
 
 const api = [
   'access',
@@ -11569,7 +11526,7 @@ exports.write = function (fd, buffer, a, b, c, callback) {
 
 
 /***/ }),
-/* 104 */
+/* 103 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -11601,15 +11558,15 @@ exports.fromPromise = function (fn) {
 
 
 /***/ }),
-/* 105 */
+/* 104 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var fs = __webpack_require__(53)
-var polyfills = __webpack_require__(106)
-var legacy = __webpack_require__(108)
-var clone = __webpack_require__(109)
+var fs = __webpack_require__(52)
+var polyfills = __webpack_require__(105)
+var legacy = __webpack_require__(107)
+var clone = __webpack_require__(108)
 
-var util = __webpack_require__(40)
+var util = __webpack_require__(39)
 
 /* istanbul ignore next - node 0.x polyfill */
 var gracefulQueue
@@ -11690,7 +11647,7 @@ if (!fs[gracefulQueue]) {
   if (/\bgfs4\b/i.test(process.env.NODE_DEBUG || '')) {
     process.on('exit', function() {
       debug(fs[gracefulQueue])
-      __webpack_require__(32).equal(fs[gracefulQueue].length, 0)
+      __webpack_require__(31).equal(fs[gracefulQueue].length, 0)
     })
   }
 }
@@ -11980,10 +11937,10 @@ function retry () {
 
 
 /***/ }),
-/* 106 */
+/* 105 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var constants = __webpack_require__(107)
+var constants = __webpack_require__(106)
 
 var origCwd = process.cwd
 var cwd = null
@@ -12332,17 +12289,17 @@ function patch (fs) {
 
 
 /***/ }),
-/* 107 */
+/* 106 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("constants");;
 
 /***/ }),
-/* 108 */
+/* 107 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var Stream = __webpack_require__(31).Stream
+var Stream = __webpack_require__(30).Stream
 
 module.exports = legacy
 
@@ -12463,7 +12420,7 @@ function legacy (fs) {
 
 
 /***/ }),
-/* 109 */
+/* 108 */
 /***/ ((module) => {
 
 "use strict";
@@ -12493,27 +12450,27 @@ function clone (obj) {
 
 
 /***/ }),
-/* 110 */
+/* 109 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-const u = __webpack_require__(104).fromCallback
+const u = __webpack_require__(103).fromCallback
 module.exports = {
-  copy: u(__webpack_require__(111))
+  copy: u(__webpack_require__(110))
 }
 
 
 /***/ }),
-/* 111 */
+/* 110 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(105)
-const path = __webpack_require__(112)
-const ncp = __webpack_require__(113)
-const mkdir = __webpack_require__(115)
-const pathExists = __webpack_require__(119).pathExists
+const fs = __webpack_require__(104)
+const path = __webpack_require__(111)
+const ncp = __webpack_require__(112)
+const mkdir = __webpack_require__(114)
+const pathExists = __webpack_require__(118).pathExists
 
 function copy (src, dest, options, callback) {
   if (typeof options === 'function' && !callback) {
@@ -12564,21 +12521,21 @@ module.exports = copy
 
 
 /***/ }),
-/* 112 */
+/* 111 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("path");;
 
 /***/ }),
-/* 113 */
+/* 112 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 // imported from ncp (this is temporary, will rewrite)
 
-var fs = __webpack_require__(105)
-var path = __webpack_require__(112)
-var utimes = __webpack_require__(114)
+var fs = __webpack_require__(104)
+var path = __webpack_require__(111)
+var utimes = __webpack_require__(113)
 
 function ncp (source, dest, options, callback) {
   if (!callback) {
@@ -12811,15 +12768,15 @@ module.exports = ncp
 
 
 /***/ }),
-/* 114 */
+/* 113 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(105)
-const os = __webpack_require__(42)
-const path = __webpack_require__(112)
+const fs = __webpack_require__(104)
+const os = __webpack_require__(41)
+const path = __webpack_require__(111)
 
 // HFS, ext{2,3}, FAT do not, Node.js v0.10 does not
 function hasMillisResSync () {
@@ -12890,14 +12847,14 @@ module.exports = {
 
 
 /***/ }),
-/* 115 */
+/* 114 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
-const u = __webpack_require__(104).fromCallback
-const mkdirs = u(__webpack_require__(116))
-const mkdirsSync = __webpack_require__(118)
+const u = __webpack_require__(103).fromCallback
+const mkdirs = u(__webpack_require__(115))
+const mkdirsSync = __webpack_require__(117)
 
 module.exports = {
   mkdirs: mkdirs,
@@ -12911,15 +12868,15 @@ module.exports = {
 
 
 /***/ }),
-/* 116 */
+/* 115 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(105)
-const path = __webpack_require__(112)
-const invalidWin32Path = __webpack_require__(117).invalidWin32Path
+const fs = __webpack_require__(104)
+const path = __webpack_require__(111)
+const invalidWin32Path = __webpack_require__(116).invalidWin32Path
 
 const o777 = parseInt('0777', 8)
 
@@ -12981,13 +12938,13 @@ module.exports = mkdirs
 
 
 /***/ }),
-/* 117 */
+/* 116 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const path = __webpack_require__(112)
+const path = __webpack_require__(111)
 
 // get drive on windows
 function getRootPath (p) {
@@ -13013,15 +12970,15 @@ module.exports = {
 
 
 /***/ }),
-/* 118 */
+/* 117 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(105)
-const path = __webpack_require__(112)
-const invalidWin32Path = __webpack_require__(117).invalidWin32Path
+const fs = __webpack_require__(104)
+const path = __webpack_require__(111)
+const invalidWin32Path = __webpack_require__(116).invalidWin32Path
 
 const o777 = parseInt('0777', 8)
 
@@ -13079,13 +13036,13 @@ module.exports = mkdirsSync
 
 
 /***/ }),
-/* 119 */
+/* 118 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
-const u = __webpack_require__(104).fromPromise
-const fs = __webpack_require__(103)
+const u = __webpack_require__(103).fromPromise
+const fs = __webpack_require__(102)
 
 function pathExists (path) {
   return fs.access(path).then(() => true).catch(() => false)
@@ -13098,25 +13055,25 @@ module.exports = {
 
 
 /***/ }),
-/* 120 */
+/* 119 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 module.exports = {
-  copySync: __webpack_require__(121)
+  copySync: __webpack_require__(120)
 }
 
 
 /***/ }),
-/* 121 */
+/* 120 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(105)
-const path = __webpack_require__(112)
-const copyFileSync = __webpack_require__(122)
-const mkdir = __webpack_require__(115)
+const fs = __webpack_require__(104)
+const path = __webpack_require__(111)
+const copyFileSync = __webpack_require__(121)
+const mkdir = __webpack_require__(114)
 
 function copySync (src, dest, options) {
   if (typeof options === 'function' || options instanceof RegExp) {
@@ -13176,16 +13133,16 @@ module.exports = copySync
 
 
 /***/ }),
-/* 122 */
+/* 121 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(105)
+const fs = __webpack_require__(104)
 
 const BUF_LENGTH = 64 * 1024
-const _buff = __webpack_require__(123)(BUF_LENGTH)
+const _buff = __webpack_require__(122)(BUF_LENGTH)
 
 function copyFileSync (srcFile, destFile, options) {
   const overwrite = options.overwrite
@@ -13224,7 +13181,7 @@ module.exports = copyFileSync
 
 
 /***/ }),
-/* 123 */
+/* 122 */
 /***/ ((module) => {
 
 /* eslint-disable node/no-deprecated-api */
@@ -13241,14 +13198,14 @@ module.exports = function (size) {
 
 
 /***/ }),
-/* 124 */
+/* 123 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(104).fromCallback
-const rimraf = __webpack_require__(125)
+const u = __webpack_require__(103).fromCallback
+const rimraf = __webpack_require__(124)
 
 module.exports = {
   remove: u(rimraf),
@@ -13257,15 +13214,15 @@ module.exports = {
 
 
 /***/ }),
-/* 125 */
+/* 124 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(105)
-const path = __webpack_require__(112)
-const assert = __webpack_require__(32)
+const fs = __webpack_require__(104)
+const path = __webpack_require__(111)
+const assert = __webpack_require__(31)
 
 const isWindows = (process.platform === 'win32')
 
@@ -13578,17 +13535,17 @@ rimraf.sync = rimrafSync
 
 
 /***/ }),
-/* 126 */
+/* 125 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(104).fromCallback
-const jsonFile = __webpack_require__(127)
+const u = __webpack_require__(103).fromCallback
+const jsonFile = __webpack_require__(126)
 
-jsonFile.outputJson = u(__webpack_require__(129))
-jsonFile.outputJsonSync = __webpack_require__(130)
+jsonFile.outputJson = u(__webpack_require__(128))
+jsonFile.outputJsonSync = __webpack_require__(129)
 // aliases
 jsonFile.outputJSON = jsonFile.outputJson
 jsonFile.outputJSONSync = jsonFile.outputJsonSync
@@ -13601,14 +13558,14 @@ module.exports = jsonFile
 
 
 /***/ }),
-/* 127 */
+/* 126 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(104).fromCallback
-const jsonFile = __webpack_require__(128)
+const u = __webpack_require__(103).fromCallback
+const jsonFile = __webpack_require__(127)
 
 module.exports = {
   // jsonfile exports
@@ -13620,14 +13577,14 @@ module.exports = {
 
 
 /***/ }),
-/* 128 */
+/* 127 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var _fs
 try {
-  _fs = __webpack_require__(105)
+  _fs = __webpack_require__(104)
 } catch (_) {
-  _fs = __webpack_require__(53)
+  _fs = __webpack_require__(52)
 }
 
 function readFile (file, options, callback) {
@@ -13760,16 +13717,16 @@ module.exports = jsonfile
 
 
 /***/ }),
-/* 129 */
+/* 128 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const path = __webpack_require__(112)
-const mkdir = __webpack_require__(115)
-const pathExists = __webpack_require__(119).pathExists
-const jsonFile = __webpack_require__(127)
+const path = __webpack_require__(111)
+const mkdir = __webpack_require__(114)
+const pathExists = __webpack_require__(118).pathExists
+const jsonFile = __webpack_require__(126)
 
 function outputJson (file, data, options, callback) {
   if (typeof options === 'function') {
@@ -13794,16 +13751,16 @@ module.exports = outputJson
 
 
 /***/ }),
-/* 130 */
+/* 129 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(105)
-const path = __webpack_require__(112)
-const mkdir = __webpack_require__(115)
-const jsonFile = __webpack_require__(127)
+const fs = __webpack_require__(104)
+const path = __webpack_require__(111)
+const mkdir = __webpack_require__(114)
+const jsonFile = __webpack_require__(126)
 
 function outputJsonSync (file, data, options) {
   const dir = path.dirname(file)
@@ -13819,7 +13776,7 @@ module.exports = outputJsonSync
 
 
 /***/ }),
-/* 131 */
+/* 130 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -13831,12 +13788,12 @@ module.exports = outputJsonSync
 
 // this needs a cleanup
 
-const u = __webpack_require__(104).fromCallback
-const fs = __webpack_require__(105)
-const ncp = __webpack_require__(113)
-const path = __webpack_require__(112)
-const remove = __webpack_require__(124).remove
-const mkdirp = __webpack_require__(115).mkdirs
+const u = __webpack_require__(103).fromCallback
+const fs = __webpack_require__(104)
+const ncp = __webpack_require__(112)
+const path = __webpack_require__(111)
+const remove = __webpack_require__(123).remove
+const mkdirp = __webpack_require__(114).mkdirs
 
 function move (src, dest, options, callback) {
   if (typeof options === 'function') {
@@ -13996,18 +13953,18 @@ module.exports = {
 
 
 /***/ }),
-/* 132 */
+/* 131 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(105)
-const path = __webpack_require__(112)
-const copySync = __webpack_require__(120).copySync
-const removeSync = __webpack_require__(124).removeSync
-const mkdirpSync = __webpack_require__(115).mkdirsSync
-const buffer = __webpack_require__(123)
+const fs = __webpack_require__(104)
+const path = __webpack_require__(111)
+const copySync = __webpack_require__(119).copySync
+const removeSync = __webpack_require__(123).removeSync
+const mkdirpSync = __webpack_require__(114).mkdirsSync
+const buffer = __webpack_require__(122)
 
 function moveSync (src, dest, options) {
   options = options || {}
@@ -14121,17 +14078,17 @@ module.exports = {
 
 
 /***/ }),
-/* 133 */
+/* 132 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(104).fromCallback
-const fs = __webpack_require__(53)
-const path = __webpack_require__(112)
-const mkdir = __webpack_require__(115)
-const remove = __webpack_require__(124)
+const u = __webpack_require__(103).fromCallback
+const fs = __webpack_require__(52)
+const path = __webpack_require__(111)
+const mkdir = __webpack_require__(114)
+const remove = __webpack_require__(123)
 
 const emptyDir = u(function emptyDir (dir, callback) {
   callback = callback || function () {}
@@ -14176,15 +14133,15 @@ module.exports = {
 
 
 /***/ }),
-/* 134 */
+/* 133 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const file = __webpack_require__(135)
-const link = __webpack_require__(136)
-const symlink = __webpack_require__(137)
+const file = __webpack_require__(134)
+const link = __webpack_require__(135)
+const symlink = __webpack_require__(136)
 
 module.exports = {
   // file
@@ -14206,17 +14163,17 @@ module.exports = {
 
 
 /***/ }),
-/* 135 */
+/* 134 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(104).fromCallback
-const path = __webpack_require__(112)
-const fs = __webpack_require__(105)
-const mkdir = __webpack_require__(115)
-const pathExists = __webpack_require__(119).pathExists
+const u = __webpack_require__(103).fromCallback
+const path = __webpack_require__(111)
+const fs = __webpack_require__(104)
+const mkdir = __webpack_require__(114)
+const pathExists = __webpack_require__(118).pathExists
 
 function createFile (file, callback) {
   function makeFile () {
@@ -14262,17 +14219,17 @@ module.exports = {
 
 
 /***/ }),
-/* 136 */
+/* 135 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(104).fromCallback
-const path = __webpack_require__(112)
-const fs = __webpack_require__(105)
-const mkdir = __webpack_require__(115)
-const pathExists = __webpack_require__(119).pathExists
+const u = __webpack_require__(103).fromCallback
+const path = __webpack_require__(111)
+const fs = __webpack_require__(104)
+const mkdir = __webpack_require__(114)
+const pathExists = __webpack_require__(118).pathExists
 
 function createLink (srcpath, dstpath, callback) {
   function makeLink (srcpath, dstpath) {
@@ -14330,28 +14287,28 @@ module.exports = {
 
 
 /***/ }),
-/* 137 */
+/* 136 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(104).fromCallback
-const path = __webpack_require__(112)
-const fs = __webpack_require__(105)
-const _mkdirs = __webpack_require__(115)
+const u = __webpack_require__(103).fromCallback
+const path = __webpack_require__(111)
+const fs = __webpack_require__(104)
+const _mkdirs = __webpack_require__(114)
 const mkdirs = _mkdirs.mkdirs
 const mkdirsSync = _mkdirs.mkdirsSync
 
-const _symlinkPaths = __webpack_require__(138)
+const _symlinkPaths = __webpack_require__(137)
 const symlinkPaths = _symlinkPaths.symlinkPaths
 const symlinkPathsSync = _symlinkPaths.symlinkPathsSync
 
-const _symlinkType = __webpack_require__(139)
+const _symlinkType = __webpack_require__(138)
 const symlinkType = _symlinkType.symlinkType
 const symlinkTypeSync = _symlinkType.symlinkTypeSync
 
-const pathExists = __webpack_require__(119).pathExists
+const pathExists = __webpack_require__(118).pathExists
 
 function createSymlink (srcpath, dstpath, type, callback) {
   callback = (typeof type === 'function') ? type : callback
@@ -14403,15 +14360,15 @@ module.exports = {
 
 
 /***/ }),
-/* 138 */
+/* 137 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const path = __webpack_require__(112)
-const fs = __webpack_require__(105)
-const pathExists = __webpack_require__(119).pathExists
+const path = __webpack_require__(111)
+const fs = __webpack_require__(104)
+const pathExists = __webpack_require__(118).pathExists
 
 /**
  * Function that returns two types of paths, one relative to symlink, and one
@@ -14509,13 +14466,13 @@ module.exports = {
 
 
 /***/ }),
-/* 139 */
+/* 138 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const fs = __webpack_require__(105)
+const fs = __webpack_require__(104)
 
 function symlinkType (srcpath, type, callback) {
   callback = (typeof type === 'function') ? type : callback
@@ -14547,17 +14504,17 @@ module.exports = {
 
 
 /***/ }),
-/* 140 */
+/* 139 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-const u = __webpack_require__(104).fromCallback
-const fs = __webpack_require__(105)
-const path = __webpack_require__(112)
-const mkdir = __webpack_require__(115)
-const pathExists = __webpack_require__(119).pathExists
+const u = __webpack_require__(103).fromCallback
+const fs = __webpack_require__(104)
+const path = __webpack_require__(111)
+const mkdir = __webpack_require__(114)
+const pathExists = __webpack_require__(118).pathExists
 
 function outputFile (file, data, encoding, callback) {
   if (typeof encoding === 'function') {
@@ -14594,7 +14551,7 @@ module.exports = {
 
 
 /***/ }),
-/* 141 */
+/* 140 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -14606,7 +14563,7 @@ module.exports = {
 *********************************************************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getCurrentNode = exports.getNodesByTag = exports.ElementNode = exports.XmlTagName = void 0;
-const xml_zero_lexer_1 = __webpack_require__(142);
+const xml_zero_lexer_1 = __webpack_require__(141);
 var XmlTagName;
 (function (XmlTagName) {
     XmlTagName["GroupId"] = "groupId";
@@ -14744,7 +14701,7 @@ function getElementHierarchy(text, tokens, tagOrOffset) {
 
 
 /***/ }),
-/* 142 */
+/* 141 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -15319,7 +15276,7 @@ var Lexx = function Lexx(xml, options) {
 exports.default = Lexx;
 
 /***/ }),
-/* 143 */
+/* 142 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -15335,9 +15292,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getLatestVersion = exports.getVersions = exports.getArtifacts = void 0;
-const https = __webpack_require__(28);
-const _ = __webpack_require__(144);
-const url = __webpack_require__(30);
+const https = __webpack_require__(27);
+const _ = __webpack_require__(143);
+const url = __webpack_require__(29);
 const URL_BASIC_SEARCH = "https://search.maven.org/solrsearch/select";
 function getArtifacts(keywords) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -15428,7 +15385,7 @@ function toQueryString(params) {
 
 
 /***/ }),
-/* 144 */
+/* 143 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* module decorator */ module = __webpack_require__.nmd(module);
@@ -32636,7 +32593,7 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/**
 
 
 /***/ }),
-/* 145 */
+/* 144 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -32668,7 +32625,7 @@ exports.Lib = Lib;
 
 
 /***/ }),
-/* 146 */
+/* 145 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -32681,7 +32638,7 @@ exports.urlListUI = void 0;
 *********************************************************************************************************************************
 *********************************************************************************************************************************/
 const vscode = __webpack_require__(1);
-const listUrlComponent_1 = __webpack_require__(148);
+const listUrlComponent_1 = __webpack_require__(146);
 function urlListUI(urlList) {
     const panel = vscode.window.createWebviewPanel('Rac', 'Racommander URL', vscode.ViewColumn.One, {
         enableScripts: true
@@ -32698,39 +32655,7 @@ exports.urlListUI = urlListUI;
 
 
 /***/ }),
-/* 147 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PortionCode = void 0;
-/********************************************************************************************************************************
-*********************************************************************************************************************************
-*                                           START URL RECOMMEND
-*********************************************************************************************************************************
-*********************************************************************************************************************************/
-class PortionCode {
-    constructor(compilationUnit) {
-        this.compilationUnit = compilationUnit;
-    }
-    getLib() {
-        return this.compilationUnit;
-    }
-    setLib(compilationUnit) {
-        this.compilationUnit = compilationUnit;
-    }
-}
-exports.PortionCode = PortionCode;
-/********************************************************************************************************************************
-*********************************************************************************************************************************
-*                                           START URL RECOMMEND
-*********************************************************************************************************************************
-*********************************************************************************************************************************/ 
-
-
-/***/ }),
-/* 148 */
+/* 146 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -32742,7 +32667,7 @@ exports.PortionCode = PortionCode;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getWebviewContent = void 0;
-const lodash_1 = __webpack_require__(144);
+const lodash_1 = __webpack_require__(143);
 function getWebviewContent(urlRecommend) {
     return ` 
   <!doctype html>
@@ -32780,8 +32705,6 @@ function getWebviewContent(urlRecommend) {
       </div>
     </div>
   </div>
-  <hr>
-  <hr>
   <br>
   <!-- Option 1: Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"

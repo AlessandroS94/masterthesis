@@ -7,11 +7,11 @@
 import * as vscode from 'vscode';
 import { getWebviewContent } from '../component/listComponent';
 import { Lib } from '../model/lib';
-import { LocalStorage } from '../storage/LocalStorage';
+
 import { writeFile } from 'fs';
 import { addDependencyHandler } from './pomAddingLibrary';
 
-export function reccomendListUI(libRac: any[], context: vscode.ExtensionContext,storageManager:LocalStorage){
+export function reccomendListUI(libRac: any[], context: vscode.ExtensionContext){
   
   const panel = vscode.window.createWebviewPanel(
     'Rac',

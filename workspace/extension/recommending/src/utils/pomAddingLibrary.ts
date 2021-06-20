@@ -4,19 +4,11 @@
 *********************************************************************************************************************************
 *********************************************************************************************************************************/
 import * as fse from "fs-extra";
-import * as path from "path";
 import * as vscode from "vscode";
-import { ElementNode, getNodesByTag, XmlTagName } from "../utils/lexerUtils";
+import { ElementNode, getNodesByTag, XmlTagName } from "./lexerUtils";
 import { getArtifacts, IArtifactMetadata } from "../service/artifactService";
-import { count } from "console";
 //import { selectProjectIfNecessary } from "../utils/uiUtils";
 
-export async function applyDependencySelected(params: any, options: any) {
-    params.forEach((element: any) => {
-        addDependencyHandler(options, element);
-    });
-
-}
 export async function addDependencyHandler(options: any, dependencies: any[]): Promise<void> {
     let pomPath = '';
     if (options) {
@@ -70,7 +62,7 @@ export async function addDependencyHandler(options: any, dependencies: any[]): P
         if (!selectedDoc) {
             continue;
         }
-        addDependency(pomPath, selectedDoc.g, selectedDoc.a, selectedDoc.latestVersion);
+        await addDependency(pomPath, selectedDoc.g, selectedDoc.a, selectedDoc.latestVersion);
 
     }
 }
