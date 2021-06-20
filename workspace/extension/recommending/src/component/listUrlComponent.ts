@@ -1,11 +1,14 @@
 /********************************************************************************************************************************
 *********************************************************************************************************************************
-*                                           START POM RECOMMEND
+*                                           START URL RECOMMEND
 *********************************************************************************************************************************
 *********************************************************************************************************************************/
+
 'use strict';
 
-export function getWebviewContent(libRac: any[]) {
+import { toString } from "lodash";
+
+export function getWebviewContent(urlRecommend: any) {
   
   return ` 
   <!doctype html>
@@ -20,14 +23,14 @@ export function getWebviewContent(libRac: any[]) {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
 
-  <title>Library</title>
+  <title>Link Racommended</title>
 </head>
 
 <body>
   <nav class="navbar navbar-dark bg-dark">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
-        <a class="nav-link" href="#">&nbsp;Library Pom Racommand <span class="sr-only"></span></a>
+        <a class="nav-link" href="#">&nbsp;Link Racommanded <span class="sr-only"></span></a>
       </li>
     </ul>
   </nav>
@@ -35,38 +38,17 @@ export function getWebviewContent(libRac: any[]) {
 
   <div class="card">
     <div class="card-body">
-      <h5 class="card-title">Library Racommand</h5>
+      <h5 class="card-title">Link Racommand</h5>
       <div class="card-body">
-        <h5 class="card-title">Library</h5>
-        <form name="LibRacommand">
-          `+ deserializerRac(libRac) + `
-        </form>
+        <ul class="list-group list-group-flush">
+          `+ deserializerRac(urlRecommend) + `
+        </ul>
       </div>
     </div>
   </div>
   <hr>
-  <div class="d-grid gap-2">
-    <button class="btn btn-primary" id='action' type="button"> COMPLETE ADDING </button>
-  </div>
   <hr>
   <br>
-  <script>
-
-    const button = document.getElementById('action');
-    button.addEventListener("click", () => { act() });
-    function act() {
-      const vscode = acquireVsCodeApi();
-      let x = document.getElementsByName("lib");
-      let res = [];
-      x.forEach(element => {
-        if (element.checked) { res.push(element.value); }
-      });
-      vscode.postMessage({
-        command: 'send',
-        text: res
-      });
-    }
-  </script>
   <!-- Option 1: Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
@@ -78,20 +60,21 @@ export function getWebviewContent(libRac: any[]) {
   `;
 }
 
-function deserializerRac(libRac: any):any{
+function deserializerRac(urlRecommend: any):any{
   let result = '';
-  libRac.forEach((element: any) => {
+  
+  urlRecommend.forEach((element: any) => {
+    console.log(element);
     const posttag='&nbsp;&nbsp;'+
-    '<div class="form-check"><input class="form-check-input" type="checkbox" name=lib value="'+element+'" id="flexCheckChecked"'+
-    '<label class="form-check-label" for="flexCheckChecked">'+element+
-    '</label></div>';
+    '<li class="list-group-item"><a href="'+toString(element)+'">'+toString(element)+'</a></li>';
     result = result + posttag;
     //console.log(element);
   });
 return result;
 }
+
 /********************************************************************************************************************************
 *********************************************************************************************************************************
-*                                           FINISH POM RECOMMEND
+*                                           FINISH URL RECOMMEND
 *********************************************************************************************************************************
 *********************************************************************************************************************************/

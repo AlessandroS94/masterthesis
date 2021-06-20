@@ -11,25 +11,33 @@
   ],
   "activationEvents": [
     "onCommand:recommending.start",
-    "onCommand:Getting.pom",
-    "onCommand:addPom.pom"
+    "onCommand:recommending.gettingPom"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "recommending.start",
-        "title": "raccomending"
+        "title": "Raccomending start"
       },
       {
-        "command": "Getting.pom",
-        "title": "Getting pom"
+        "command": "recommending.gettingPom",
+        "title": "Getting recommend dependencies"
       },
       {
-        "command": "addPom.pom",
-        "title": "Add to Pom"
+        "command": "recommending.getUrlRecommend",
+        "title": "Get page recommend"
       }
-    ]
+
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "recommending.getUrlRecommend",
+          "group": "YourGroup@1"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

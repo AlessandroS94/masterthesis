@@ -1,21 +1,16 @@
 /********************************************************************************************************************************
 *********************************************************************************************************************************
-*                                           START POM RECOMMEND
+*                                           START URL RECOMMEND
 *********************************************************************************************************************************
 *********************************************************************************************************************************/
-
 import * as vscode from 'vscode';
-import { getWebviewContent } from '../component/listComponent';
-import { Lib } from '../model/lib';
-import { LocalStorage } from '../storage/LocalStorage';
-import { writeFile } from 'fs';
-import { addDependencyHandler } from './pomAddingLibrary';
+import { getWebviewContent } from '../component/listUrlComponent';
 
-export function reccomendListUI(libRac: any[], context: vscode.ExtensionContext,storageManager:LocalStorage){
+export function urlListUI(urlList: any){
   
   const panel = vscode.window.createWebviewPanel(
     'Rac',
-    'Racommander',
+    'Racommander URL',
     vscode.ViewColumn.One,
     {
       enableScripts: true
@@ -23,29 +18,11 @@ export function reccomendListUI(libRac: any[], context: vscode.ExtensionContext,
   );
 
   // And set its HTML content
-  panel.webview.html = getWebviewContent(libRac);
-
-  //recive the message by webview script
-  panel.webview.onDidReceiveMessage(
-    message => {
-      switch (message.command) {
-        case 'send':
-          
-          //recommend.store(message.text)[0];
-          //storageManager.setValue('recommendLib',message.text);
-          vscode.workspace.findFiles('**/pom.xml').then(files=>{
-              var opts = { filePath: files[0].fsPath};
-              addDependencyHandler(opts,message.text); 
-              
-          });
-      }
-    },
-    undefined,
-    context.subscriptions
-  );  
+  panel.webview.html = getWebviewContent(urlList);
+  
 }
 /********************************************************************************************************************************
 *********************************************************************************************************************************
-*                                           START POM RECOMMEND
+*                                           START URL RECOMMEND
 *********************************************************************************************************************************
 *********************************************************************************************************************************/

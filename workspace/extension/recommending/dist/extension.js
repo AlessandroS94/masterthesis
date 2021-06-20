@@ -25,6 +25,8 @@ const recommendService_1 = __webpack_require__(3);
 const multipleDependenciesFinder_1 = __webpack_require__(51);
 const recomendListUI_1 = __webpack_require__(98);
 const lib_1 = __webpack_require__(145);
+const portionCode_1 = __webpack_require__(147);
+const urlListUI_1 = __webpack_require__(146);
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -40,52 +42,114 @@ function activate(context) {
         let disposable = vscode.commands.registerCommand('recommending.start', () => {
             // The code you place here will be executed every time your command is executed
             // Display a message box to the user
-            vscode.window.showInformationMessage('Hello World from recommending!');
+            vscode.window.showInformationMessage('Racommend started all functionality!');
         });
-        let addToPom = vscode.commands.registerCommand('addPom.pom', () => {
-            // The code you place here will be executed every time your command is executed
-            // vscode.workspace.findFiles('**/pom.xml').then(files => {
-            //	files.forEach(file => {
-            //		var opts = { filePath: file.fsPath };
-            //		var str = 'org.pac4j:pac4j-http';
-            //		addDependencyHandler(opts,str); 
-            //	});
-            //}); */
-            //addDependencyHandler(options);
+        context.subscriptions.push(disposable);
+        /********************************************************************************************************************************
+        *********************************************************************************************************************************
+        *                                           START URL RECOMMEND
+        *********************************************************************************************************************************
+        *********************************************************************************************************************************/
+        // this code runs whenever your click 'Create Gist' from the context menu in your browser.
+        let urlRecommend = vscode.commands.registerCommand('recommending.getUrlRecommend', () => {
+            procedureUrlRecommend();
         });
+        //Subscribe the command
+        context.subscriptions.push(urlRecommend);
+        /********************************************************************************************************************************
+        *********************************************************************************************************************************
+        *                                           FINISH URL RECOMMEND
+        *********************************************************************************************************************************
+        *********************************************************************************************************************************/
+        /********************************************************************************************************************************
+        *********************************************************************************************************************************
+        *                                           START POM RECOMMEND
+        *********************************************************************************************************************************
+        *********************************************************************************************************************************/
         // This command activate the raccomand system for more pom
-        let pomGetter = vscode.commands.registerCommand('Getting.pom', () => {
+        let pomGetter = vscode.commands.registerCommand('recommending.gettingPom', () => {
             procedureRecommend(context, storageManager);
         });
         //Subscribe the command
-        context.subscriptions.push(disposable);
         context.subscriptions.push(pomGetter);
-        context.subscriptions.push(addToPom);
+        /********************************************************************************************************************************
+        *********************************************************************************************************************************
+        *                                           FINISH POM RECOMMEND
+        *********************************************************************************************************************************
+        *********************************************************************************************************************************/
     });
 }
 exports.activate = activate;
 // this method is called when your extension is deactivated
 function deactivate() { }
 exports.deactivate = deactivate;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
 // This function find the pom on the VSCode Workspace
-// and parse the pom 
+// and parse the pom
 function procedureRecommend(context, storageManager) {
-    // create the object of the parsed POM 
+    // create the object of the parsed POM
     const libPom = new lib_1.Lib(multipleDependenciesFinder_1.multipleDependenciesFinder());
     // Recive and view the racommend data
     let getRecommend = (libPom) => __awaiter(this, void 0, void 0, function* () {
         // Data of the racommend call
-        let raccomand = yield recommendService_1.callSinglePom(libPom);
-        //console.log(a?.data.score);
-        // @ts-ignore
-        let libRac = raccomand === null || raccomand === void 0 ? void 0 : raccomand.data.score;
-        // open the page to select the recommend lib 
-        recomendListUI_1.reccomendListUI(libRac, context, storageManager);
-        //printDependency(storageManager.getValue('recommendLib'));
+        try {
+            let raccomand = yield recommendService_1.callSinglePom(libPom);
+            //console.log(a?.data.score);
+            // @ts-ignore
+            const libRac = raccomand === null || raccomand === void 0 ? void 0 : raccomand.data.score;
+            // open the page to select the recommend lib
+            recomendListUI_1.reccomendListUI(libRac, context, storageManager);
+            //printDependency(storageManager.getValue('recommendLib'));
+        }
+        catch (error) {
+            vscode.window.showInformationMessage('Connection Error');
+        }
     });
     //storageManager.setValue('recomend_lib',[]);
     getRecommend(libPom);
 }
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           FININSH POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START URL RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
+function procedureUrlRecommend() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+            const text = editor.document.getText(editor.selection);
+            const portionCode = new portionCode_1.PortionCode(text);
+            /* let getUrlRecommend = async (portionCode: any) => {
+                // Data of the racommend call
+                let raccomand = await callRecommendUrlService(portionCode);
+                const urlRecommend = raccomand;
+    
+            }; */
+            //storageManager.setValue('recomend_lib',[]);
+            //getUrlRecommend(portionCode);
+            console.log(text);
+            const urlList = ['https://getbootstrap.com/docs/5.0/components/card/', 'https://getbootstrap.com/docs/5.0/components/card/'];
+            urlListUI_1.urlListUI(urlList);
+        }
+        else {
+            vscode.window.showInformationMessage('You did not select anything');
+        }
+    });
+}
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           FINISH URL RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
 
 
 /***/ }),
@@ -122,6 +186,11 @@ exports.LocalStorage = LocalStorage;
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
 
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -3978,6 +4047,11 @@ module.exports = function isAxiosError(payload) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.multipleDependenciesFinder = void 0;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
 const vscode = __webpack_require__(1);
 var pomParser = __webpack_require__(52);
 /* Find all pom file in the workspace and parse all pom file
@@ -4014,6 +4088,11 @@ function multipleDependenciesFinder() {
     return response;
 }
 exports.multipleDependenciesFinder = multipleDependenciesFinder;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           FINISH POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/ 
 
 
 /***/ }),
@@ -11019,6 +11098,11 @@ var hasOwnProperty = Object.hasOwnProperty || function (obj, key) {
 
 "use strict";
 
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.reccomendListUI = void 0;
 const vscode = __webpack_require__(1);
@@ -11044,6 +11128,11 @@ function reccomendListUI(libRac, context, storageManager) {
     }, undefined, context.subscriptions);
 }
 exports.reccomendListUI = reccomendListUI;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/ 
 
 
 /***/ }),
@@ -11051,6 +11140,11 @@ exports.reccomendListUI = reccomendListUI;
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getWebviewContent = void 0;
@@ -11157,6 +11251,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.addDependencyHandler = exports.applyDependencySelected = void 0;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
 const fse = __webpack_require__(101);
 const vscode = __webpack_require__(1);
 const lexerUtils_1 = __webpack_require__(141);
@@ -11297,6 +11396,11 @@ function getIndentation(document, offset) {
     const closingTagPosition = document.positionAt(offset);
     return document.getText(new vscode.Range(new vscode.Position(closingTagPosition.line, 0), closingTagPosition));
 }
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           FINISH POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/ 
 
 
 /***/ }),
@@ -14495,6 +14599,11 @@ module.exports = {
 
 "use strict";
 
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getCurrentNode = exports.getNodesByTag = exports.ElementNode = exports.XmlTagName = void 0;
 const xml_zero_lexer_1 = __webpack_require__(142);
@@ -14627,6 +14736,11 @@ function getElementHierarchy(text, tokens, tagOrOffset) {
     }
     return undefined;
 }
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           FININSH POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/ 
 
 
 /***/ }),
@@ -15306,6 +15420,11 @@ function httpsGet(urlString) {
 function toQueryString(params) {
     return Object.keys(params).map(k => `${k}=${encodeURIComponent(params[k].toString())}`).join("&");
 }
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/ 
 
 
 /***/ }),
@@ -32524,6 +32643,11 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/**
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Lib = void 0;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
 class Lib {
     constructor(lib) {
         this.lib = lib;
@@ -32536,6 +32660,151 @@ class Lib {
     }
 }
 exports.Lib = Lib;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START POM RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/ 
+
+
+/***/ }),
+/* 146 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.urlListUI = void 0;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START URL RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
+const vscode = __webpack_require__(1);
+const listUrlComponent_1 = __webpack_require__(148);
+function urlListUI(urlList) {
+    const panel = vscode.window.createWebviewPanel('Rac', 'Racommander URL', vscode.ViewColumn.One, {
+        enableScripts: true
+    });
+    // And set its HTML content
+    panel.webview.html = listUrlComponent_1.getWebviewContent(urlList);
+}
+exports.urlListUI = urlListUI;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START URL RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/ 
+
+
+/***/ }),
+/* 147 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PortionCode = void 0;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START URL RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
+class PortionCode {
+    constructor(compilationUnit) {
+        this.compilationUnit = compilationUnit;
+    }
+    getLib() {
+        return this.compilationUnit;
+    }
+    setLib(compilationUnit) {
+        this.compilationUnit = compilationUnit;
+    }
+}
+exports.PortionCode = PortionCode;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START URL RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/ 
+
+
+/***/ }),
+/* 148 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START URL RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getWebviewContent = void 0;
+const lodash_1 = __webpack_require__(144);
+function getWebviewContent(urlRecommend) {
+    return ` 
+  <!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+  <title>Link Racommended</title>
+</head>
+
+<body>
+  <nav class="navbar navbar-dark bg-dark">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="#">&nbsp;Link Racommanded <span class="sr-only"></span></a>
+      </li>
+    </ul>
+  </nav>
+  <br>
+
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">Link Racommand</h5>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          ` + deserializerRac(urlRecommend) + `
+        </ul>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <hr>
+  <br>
+  <!-- Option 1: Bootstrap Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
+    crossorigin="anonymous"></script>
+  <!-- Script fot VsCode Comunication -->
+</body>
+
+</html>
+  `;
+}
+exports.getWebviewContent = getWebviewContent;
+function deserializerRac(urlRecommend) {
+    let result = '';
+    urlRecommend.forEach((element) => {
+        console.log(element);
+        const posttag = '&nbsp;&nbsp;' +
+            '<li class="list-group-item"><a href="' + lodash_1.toString(element) + '">' + lodash_1.toString(element) + '</a></li>';
+        result = result + posttag;
+        //console.log(element);
+    });
+    return result;
+}
 
 
 /***/ })
