@@ -1,0 +1,164 @@
+{
+  "recommendationItems": [
+    {
+      "apiDocumentationLink": "45700257",
+      "apiCallRecommendation": null,
+      "significance": 163.29364013671875,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "18590755",
+      "apiCallRecommendation": null,
+      "significance": 123.2226791381836,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "29661393",
+      "apiCallRecommendation": null,
+      "significance": 101.92401123046875,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "53785189",
+      "apiCallRecommendation": null,
+      "significance": 101.23784637451172,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "30192976",
+      "apiCallRecommendation": null,
+      "significance": 96.63296508789062,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "48279401",
+      "apiCallRecommendation": null,
+      "significance": 92.20760345458984,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "29280345",
+      "apiCallRecommendation": null,
+      "significance": 89.06234741210938,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "5716126",
+      "apiCallRecommendation": null,
+      "significance": 88.00743103027344,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "36897419",
+      "apiCallRecommendation": null,
+      "significance": 86.53028106689453,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "5706166",
+      "apiCallRecommendation": null,
+      "significance": 82.01028442382812,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "40998793",
+      "apiCallRecommendation": null,
+      "significance": 81.73506164550781,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "45759906",
+      "apiCallRecommendation": null,
+      "significance": 81.32452392578125,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "26778800",
+      "apiCallRecommendation": null,
+      "significance": 80.17589569091797,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "11842587",
+      "apiCallRecommendation": null,
+      "significance": 78.60794067382812,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "29969284",
+      "apiCallRecommendation": null,
+      "significance": 73.78327941894531,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "29968961",
+      "apiCallRecommendation": null,
+      "significance": 67.58561706542969,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "31399451",
+      "apiCallRecommendation": null,
+      "significance": 65.18038177490234,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "16101196",
+      "apiCallRecommendation": null,
+      "significance": 64.40031433105469,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "27297222",
+      "apiCallRecommendation": null,
+      "significance": 64.40031433105469,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    },
+    {
+      "apiDocumentationLink": "46766311",
+      "apiCallRecommendation": null,
+      "significance": 63.56373596191406,
+      "recommendationType": null,
+      "apiFunctionCallFOCUS": null,
+      "codeSnippet": null
+    }
+  ]
+}

@@ -6,9 +6,6 @@
 
 import * as vscode from 'vscode';
 import { getWebviewContent } from '../component/listComponent';
-import { Lib } from '../model/lib';
-
-import { writeFile } from 'fs';
 import { addDependencyHandler } from './pomAddingLibrary';
 
 export function reccomendListUI(libRac: any[], context: vscode.ExtensionContext){

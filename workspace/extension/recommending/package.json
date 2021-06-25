@@ -28,7 +28,6 @@
         "command": "recommending.getUrlRecommend",
         "title": "Get page recommend"
       }
-
     ],
     "menus": {
       "editor/context": [
@@ -74,6 +73,7 @@
     "fs-extra": "^4.0.3",
     "js-base64": "^3.6.0",
     "pom-parser": "^1.2.0",
+    "string.prototype.replaceall": "^1.0.5",
     "xml-zero-lexer": "^2.1.0"
   }
 }

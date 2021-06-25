@@ -9,7 +9,8 @@ import {Lib} from './model/lib';
 // import { callRecommendUrlService } from './service/recommendUrlService';
 import {PortionCode} from './model/portionCode';
 import {urlListUI} from './utils/urlListUI';
-
+import { callRecommendUrlService } from './service/recommendUrlService';
+import { replace,ReplaceFunction } from 'lodash';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
@@ -28,7 +29,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
     });
     context.subscriptions.push(disposable);
-
 
     /********************************************************************************************************************************
      *********************************************************************************************************************************
@@ -93,12 +93,10 @@ function procedureRecommend(context: vscode.ExtensionContext) {
         // Data of the racommend call
         try {
             let raccomand = await callSinglePom(libPom);
-            //console.log(a?.data.score);
             // @ts-ignore
             const libRac = raccomand?.data.score;
             // open the page to select the recommend lib
             reccomendListUI(libRac, context);
-            //printDependency(storageManager.getValue('recommendLib'));
         } catch (error) {
             vscode.window.showInformationMessage('Connection Error');
         }
@@ -121,23 +119,25 @@ function procedureRecommend(context: vscode.ExtensionContext) {
  *********************************************************************************************************************************/
 async function procedureUrlRecommend() {
     const editor = vscode.window.activeTextEditor;
+    const replaceAll = require('string.prototype.replaceall');
     if (editor) {
-        const text = editor.document.getText(editor.selection);
-        //const portionCode = new PortionCode(text);
-        /* let getUrlRecommend = async (portionCode: any) => {
+        editor.options.insertSpaces;
+        const text = String(editor.document.getText(editor.selection));        
+        const portionCode = new PortionCode(text);
+        let getUrlRecommend = async (portionCode: any) => {
             // Data of the racommend call
             let raccomand = await callRecommendUrlService(portionCode);
-            const urlRecommend = raccomand;
-
-        }; */
+            console.log(raccomand);
+            const urlRecommend = raccomand?.data.recommendationItems;
+            console.log(urlRecommend);
+            urlListUI(urlRecommend);
+        }; 
         //storageManager.setValue('recomend_lib',[]);
-        //getUrlRecommend(portionCode);
-        console.log(text);
-        const urlList = ['https://getbootstrap.com/docs/5.0/components/card/', 'https://getbootstrap.com/docs/5.0/components/card/'];
-        urlListUI(urlList);
+        getUrlRecommend(portionCode);
     } else {
         vscode.window.showInformationMessage('You did not select anything');
     }
+    
 }
 
 /********************************************************************************************************************************

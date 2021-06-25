@@ -9,7 +9,7 @@ import axios from "axios";
 
 export async function callRecommendUrlService(obj: any) {
     // URL to connect for POM recommend
-    const URL_BASIC_RECCOMEND: string = "http://192.168.1.105:5000/recommend";
+    const URL_BASIC_RECCOMEND: string = "http://178.238.238.209:8080/api/recommendation/recommended_API_documentation";
     // This is optional (use try/catch if you still want)
     // set variables
     return await axios.post(

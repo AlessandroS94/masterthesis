@@ -27,6 +27,7 @@ export function getWebviewContent(urlRecommend: any) {
 </head>
 
 <body>
+<br>
   <nav class="navbar navbar-dark bg-dark">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
@@ -62,11 +63,9 @@ function deserializerRac(urlRecommend: any):any{
   let result = '';
   
   urlRecommend.forEach((element: any) => {
-    console.log(element);
     const posttag='&nbsp;&nbsp;'+
-    '<li class="list-group-item"><a href="'+toString(element)+'">'+toString(element)+'</a></li>';
+    '<li class="list-group-item"><a href="https://stackoverflow.com/questions/'+toString(element?.apiDocumentationLink)+'/">https://stackoverflow.com/questions/'+toString(element?.apiDocumentationLink)+'/</a></li>';
     result = result + posttag;
-    //console.log(element);
   });
 return result;
 }
