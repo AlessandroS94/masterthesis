@@ -4,11 +4,11 @@
 import * as vscode from 'vscode';
 import {callSinglePom} from './service/recommendService';
 import {multipleDependenciesFinder} from './utils/multipleDependenciesFinder';
-import {reccomendListUI} from './utils/recomendListUI';
+import {reccomendListUI} from './ui/recomendListUI';
 import {Lib} from './model/lib';
 // import { callRecommendUrlService } from './service/recommendUrlService';
 import {PortionCode} from './model/portionCode';
-import {urlListUI} from './utils/urlListUI';
+import {urlListUI} from './ui/urlListUI';
 import { callRecommendUrlService } from './service/recommendUrlService';
 import { replace,ReplaceFunction } from 'lodash';
 // this method is called when your extension is activated
@@ -18,17 +18,6 @@ export async function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     //Start the extension
     console.log('"Recommending" is now active!');
-
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with registerCommand
-    // The commandId parameter must match the command field in package.json
-    let disposable = vscode.commands.registerCommand('recommending.start', () => {
-        // The code you place here will be executed every time your command is executed
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Racommend started all functionality!');
-
-    });
-    context.subscriptions.push(disposable);
 
     /********************************************************************************************************************************
      *********************************************************************************************************************************

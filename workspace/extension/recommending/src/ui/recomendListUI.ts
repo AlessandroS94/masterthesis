@@ -6,7 +6,7 @@
 
 import * as vscode from 'vscode';
 import { getWebviewContent } from '../component/listComponent';
-import { addDependencyHandler } from './pomAddingLibrary';
+import { addDependencyHandler } from '../utils/pomAddingLibrary';
 
 export function reccomendListUI(libRac: any[], context: vscode.ExtensionContext){
   

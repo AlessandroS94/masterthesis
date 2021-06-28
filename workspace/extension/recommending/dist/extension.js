@@ -23,11 +23,11 @@ const vscode = __webpack_require__(1);
 const recommendService_1 = __webpack_require__(2);
 const multipleDependenciesFinder_1 = __webpack_require__(50);
 const recomendListUI_1 = __webpack_require__(97);
-const lib_1 = __webpack_require__(144);
+const lib_1 = __webpack_require__(145);
 // import { callRecommendUrlService } from './service/recommendUrlService';
-const portionCode_1 = __webpack_require__(147);
-const urlListUI_1 = __webpack_require__(145);
-const recommendUrlService_1 = __webpack_require__(148);
+const portionCode_1 = __webpack_require__(146);
+const urlListUI_1 = __webpack_require__(147);
+const recommendUrlService_1 = __webpack_require__(149);
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -35,15 +35,6 @@ function activate(context) {
         // This line of code will only be executed once when your extension is activated
         //Start the extension
         console.log('"Recommending" is now active!');
-        // The command has been defined in the package.json file
-        // Now provide the implementation of the command with registerCommand
-        // The commandId parameter must match the command field in package.json
-        let disposable = vscode.commands.registerCommand('recommending.start', () => {
-            // The code you place here will be executed every time your command is executed
-            // Display a message box to the user
-            vscode.window.showInformationMessage('Racommend started all functionality!');
-        });
-        context.subscriptions.push(disposable);
         /********************************************************************************************************************************
          *********************************************************************************************************************************
          *                                           START URL RECOMMEND
@@ -123,7 +114,7 @@ function procedureRecommend(context) {
 function procedureUrlRecommend() {
     return __awaiter(this, void 0, void 0, function* () {
         const editor = vscode.window.activeTextEditor;
-        const replaceAll = __webpack_require__(149);
+        const replaceAll = __webpack_require__(150);
         if (editor) {
             editor.options.insertSpaces;
             const text = String(editor.document.getText(editor.selection));
@@ -11099,7 +11090,7 @@ exports.reccomendListUI = reccomendListUI;
 *********************************************************************************************************************************
 *                                           START POM RECOMMEND
 *********************************************************************************************************************************
-*********************************************************************************************************************************/ 
+*********************************************************************************************************************************/
 
 
 /***/ }),
@@ -11227,7 +11218,7 @@ exports.addDependencyHandler = void 0;
 const fse = __webpack_require__(100);
 const vscode = __webpack_require__(1);
 const lexerUtils_1 = __webpack_require__(140);
-const artifactService_1 = __webpack_require__(142);
+const showQuickPickDependencyUI_1 = __webpack_require__(142);
 //import { selectProjectIfNecessary } from "../utils/uiUtils";
 function addDependencyHandler(options, dependencies) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -11236,43 +11227,13 @@ function addDependencyHandler(options, dependencies) {
             // for nodes from Maven explorer
             pomPath = options.filePath;
         }
-        //else  {
-        // for "Maven dependencies" nodes from Project Manager
-        //pomPath =  path.join("./", "pom.xml");
-        //console.log(pomPath);
-        // Display a message box to the user
-        //} 
         if (!options && !options.projectBasePath) {
-            // select a project(pomfile)
-            /* const selectedProject: MavenProject | undefined = await selectProjectIfNecessary();
-            if (!selectedProject) {
-                return;
-            }
-            pomPath = selectedProject.pomPath; */
-            // Display a message box to the user
             vscode.window.showInformationMessage('POM not found!');
             return;
         }
-        /* if (!await fse.pathExists(pomPath)) {
-            throw  console.log("Specified POM file does not exist on file system.");
-        } */
-        /* const keywordString: string | undefined = await vscode.window.showInputBox({
-            ignoreFocusOut: true,
-            prompt: "Input keywords to search artifacts from Maven Central Repository.",
-            placeHolder: "e.g. spring azure storage",
-            validateInput: (text: string) => {
-                if (text.trim().length < 3) {
-                    return "Keywords are too short.";
-                }
-                return undefined;
-            }
-        });
-        if (!keywordString) {
-            return;
-        } */
         for (const dependency of dependencies) {
             vscode.window.showInformationMessage('' + dependency);
-            const selectedDoc = yield vscode.window.showQuickPick(artifactService_1.getArtifacts(dependency.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({ value: artifact, label: `$(package) ${artifact.a}`, description: artifact.g }))), { placeHolder: "Select a dependency ..." }).then(selected => selected ? selected.value : undefined);
+            const selectedDoc = yield showQuickPickDependencyUI_1.showQuickPickDependencyUI(dependency);
             if (!selectedDoc) {
                 continue;
             }
@@ -15294,9 +15255,44 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.showQuickPickDependencyUI = void 0;
+// @ts-ignore
+const vscode_1 = __webpack_require__(1);
+const artifactService_1 = __webpack_require__(143);
+function showQuickPickDependencyUI(dependency) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const selectedDoc = yield vscode_1.default.window.showQuickPick(artifactService_1.getArtifacts(dependency.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({
+            value: artifact,
+            label: `$(package) ${artifact.a}`,
+            description: artifact.g
+        }))), { placeHolder: "Select a dependency ..." }).then((selected) => {
+            return selected ? selected.value : undefined;
+        });
+        return selectedDoc;
+    });
+}
+exports.showQuickPickDependencyUI = showQuickPickDependencyUI;
+
+
+/***/ }),
+/* 143 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getLatestVersion = exports.getVersions = exports.getArtifacts = void 0;
 const https = __webpack_require__(27);
-const _ = __webpack_require__(143);
+const _ = __webpack_require__(144);
 const url = __webpack_require__(29);
 const URL_BASIC_SEARCH = "https://search.maven.org/solrsearch/select";
 function getArtifacts(keywords) {
@@ -15388,7 +15384,7 @@ function toQueryString(params) {
 
 
 /***/ }),
-/* 143 */
+/* 144 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* module decorator */ module = __webpack_require__.nmd(module);
@@ -32596,7 +32592,7 @@ var __WEBPACK_AMD_DEFINE_RESULT__;/**
 
 
 /***/ }),
-/* 144 */
+/* 145 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -32628,7 +32624,39 @@ exports.Lib = Lib;
 
 
 /***/ }),
-/* 145 */
+/* 146 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.PortionCode = void 0;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START URL RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/
+class PortionCode {
+    constructor(compilationUnit) {
+        this.compilationUnit = compilationUnit;
+    }
+    getLib() {
+        return this.compilationUnit;
+    }
+    setLib(compilationUnit) {
+        this.compilationUnit = compilationUnit;
+    }
+}
+exports.PortionCode = PortionCode;
+/********************************************************************************************************************************
+*********************************************************************************************************************************
+*                                           START URL RECOMMEND
+*********************************************************************************************************************************
+*********************************************************************************************************************************/ 
+
+
+/***/ }),
+/* 147 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -32641,7 +32669,7 @@ exports.urlListUI = void 0;
 *********************************************************************************************************************************
 *********************************************************************************************************************************/
 const vscode = __webpack_require__(1);
-const listUrlComponent_1 = __webpack_require__(146);
+const listUrlComponent_1 = __webpack_require__(148);
 function urlListUI(urlList) {
     const panel = vscode.window.createWebviewPanel('Rac', 'Racommander URL', vscode.ViewColumn.One, {
         enableScripts: true
@@ -32658,7 +32686,7 @@ exports.urlListUI = urlListUI;
 
 
 /***/ }),
-/* 146 */
+/* 148 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -32670,7 +32698,7 @@ exports.urlListUI = urlListUI;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getWebviewContent = void 0;
-const lodash_1 = __webpack_require__(143);
+const lodash_1 = __webpack_require__(144);
 function getWebviewContent(urlRecommend) {
     return ` 
   <!doctype html>
@@ -32733,39 +32761,7 @@ function deserializerRac(urlRecommend) {
 
 
 /***/ }),
-/* 147 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PortionCode = void 0;
-/********************************************************************************************************************************
-*********************************************************************************************************************************
-*                                           START URL RECOMMEND
-*********************************************************************************************************************************
-*********************************************************************************************************************************/
-class PortionCode {
-    constructor(compilationUnit) {
-        this.compilationUnit = compilationUnit;
-    }
-    getLib() {
-        return this.compilationUnit;
-    }
-    setLib(compilationUnit) {
-        this.compilationUnit = compilationUnit;
-    }
-}
-exports.PortionCode = PortionCode;
-/********************************************************************************************************************************
-*********************************************************************************************************************************
-*                                           START URL RECOMMEND
-*********************************************************************************************************************************
-*********************************************************************************************************************************/ 
-
-
-/***/ }),
-/* 148 */
+/* 149 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -32800,18 +32796,18 @@ exports.callRecommendUrlService = callRecommendUrlService;
 
 
 /***/ }),
-/* 149 */
+/* 150 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var callBind = __webpack_require__(150);
-var define = __webpack_require__(157);
+var callBind = __webpack_require__(151);
+var define = __webpack_require__(158);
 
-var implementation = __webpack_require__(161);
-var getPolyfill = __webpack_require__(188);
-var shim = __webpack_require__(189);
+var implementation = __webpack_require__(162);
+var getPolyfill = __webpack_require__(189);
+var shim = __webpack_require__(190);
 
 var boundReplaceAll = callBind(implementation);
 
@@ -32825,14 +32821,14 @@ module.exports = boundReplaceAll;
 
 
 /***/ }),
-/* 150 */
+/* 151 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var bind = __webpack_require__(151);
-var GetIntrinsic = __webpack_require__(153);
+var bind = __webpack_require__(152);
+var GetIntrinsic = __webpack_require__(154);
 
 var $apply = GetIntrinsic('%Function.prototype.apply%');
 var $call = GetIntrinsic('%Function.prototype.call%');
@@ -32879,19 +32875,19 @@ if ($defineProperty) {
 
 
 /***/ }),
-/* 151 */
+/* 152 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var implementation = __webpack_require__(152);
+var implementation = __webpack_require__(153);
 
 module.exports = Function.prototype.bind || implementation;
 
 
 /***/ }),
-/* 152 */
+/* 153 */
 /***/ ((module) => {
 
 "use strict";
@@ -32950,7 +32946,7 @@ module.exports = function bind(that) {
 
 
 /***/ }),
-/* 153 */
+/* 154 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -32998,7 +32994,7 @@ var ThrowTypeError = $gOPD
 	}())
 	: throwTypeError;
 
-var hasSymbols = __webpack_require__(154)();
+var hasSymbols = __webpack_require__(155)();
 
 var getProto = Object.getPrototypeOf || function (x) { return x.__proto__; }; // eslint-disable-line no-proto
 
@@ -33152,8 +33148,8 @@ var LEGACY_ALIASES = {
 	'%WeakSetPrototype%': ['WeakSet', 'prototype']
 };
 
-var bind = __webpack_require__(151);
-var hasOwn = __webpack_require__(156);
+var bind = __webpack_require__(152);
+var hasOwn = __webpack_require__(157);
 var $concat = bind.call(Function.call, Array.prototype.concat);
 var $spliceApply = bind.call(Function.apply, Array.prototype.splice);
 var $replace = bind.call(Function.call, String.prototype.replace);
@@ -33287,14 +33283,14 @@ module.exports = function GetIntrinsic(name, allowMissing) {
 
 
 /***/ }),
-/* 154 */
+/* 155 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
 var origSymbol = typeof Symbol !== 'undefined' && Symbol;
-var hasSymbolSham = __webpack_require__(155);
+var hasSymbolSham = __webpack_require__(156);
 
 module.exports = function hasNativeSymbols() {
 	if (typeof origSymbol !== 'function') { return false; }
@@ -33307,7 +33303,7 @@ module.exports = function hasNativeSymbols() {
 
 
 /***/ }),
-/* 155 */
+/* 156 */
 /***/ ((module) => {
 
 "use strict";
@@ -33356,25 +33352,25 @@ module.exports = function hasSymbols() {
 
 
 /***/ }),
-/* 156 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-var bind = __webpack_require__(151);
-
-module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
-
-
-/***/ }),
 /* 157 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var keys = __webpack_require__(158);
+var bind = __webpack_require__(152);
+
+module.exports = bind.call(Function.call, Object.prototype.hasOwnProperty);
+
+
+/***/ }),
+/* 158 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var keys = __webpack_require__(159);
 var hasSymbols = typeof Symbol === 'function' && typeof Symbol('foo') === 'symbol';
 
 var toStr = Object.prototype.toString;
@@ -33433,17 +33429,17 @@ module.exports = defineProperties;
 
 
 /***/ }),
-/* 158 */
+/* 159 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
 var slice = Array.prototype.slice;
-var isArgs = __webpack_require__(159);
+var isArgs = __webpack_require__(160);
 
 var origKeys = Object.keys;
-var keysShim = origKeys ? function keys(o) { return origKeys(o); } : __webpack_require__(160);
+var keysShim = origKeys ? function keys(o) { return origKeys(o); } : __webpack_require__(161);
 
 var originalKeys = Object.keys;
 
@@ -33472,7 +33468,7 @@ module.exports = keysShim;
 
 
 /***/ }),
-/* 159 */
+/* 160 */
 /***/ ((module) => {
 
 "use strict";
@@ -33496,7 +33492,7 @@ module.exports = function isArguments(value) {
 
 
 /***/ }),
-/* 160 */
+/* 161 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -33507,7 +33503,7 @@ if (!Object.keys) {
 	// modified from https://github.com/es-shims/es5-shim
 	var has = Object.prototype.hasOwnProperty;
 	var toStr = Object.prototype.toString;
-	var isArgs = __webpack_require__(159); // eslint-disable-line global-require
+	var isArgs = __webpack_require__(160); // eslint-disable-line global-require
 	var isEnumerable = Object.prototype.propertyIsEnumerable;
 	var hasDontEnumBug = !isEnumerable.call({ toString: null }, 'toString');
 	var hasProtoEnumBug = isEnumerable.call(function () {}, 'prototype');
@@ -33625,24 +33621,24 @@ module.exports = keysShim;
 
 
 /***/ }),
-/* 161 */
+/* 162 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var Call = __webpack_require__(162);
-var GetMethod = __webpack_require__(165);
-var GetSubstitution = __webpack_require__(173);
-var IsCallable = __webpack_require__(171);
-var IsInteger = __webpack_require__(181);
-var RequireObjectCoercible = __webpack_require__(169);
-var ToString = __webpack_require__(186);
-var Type = __webpack_require__(179);
-var GetIntrinsic = __webpack_require__(153);
-var callBound = __webpack_require__(163);
-var hasSymbols = __webpack_require__(154)();
-var isRegex = __webpack_require__(187);
+var Call = __webpack_require__(163);
+var GetMethod = __webpack_require__(166);
+var GetSubstitution = __webpack_require__(174);
+var IsCallable = __webpack_require__(172);
+var IsInteger = __webpack_require__(182);
+var RequireObjectCoercible = __webpack_require__(170);
+var ToString = __webpack_require__(187);
+var Type = __webpack_require__(180);
+var GetIntrinsic = __webpack_require__(154);
+var callBound = __webpack_require__(164);
+var hasSymbols = __webpack_require__(155)();
+var isRegex = __webpack_require__(188);
 
 var max = GetIntrinsic('%Math.max%');
 var $TypeError = GetIntrinsic('%TypeError%');
@@ -33747,18 +33743,18 @@ module.exports = function replaceAll(searchValue, replaceValue) {
 
 
 /***/ }),
-/* 162 */
+/* 163 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
-var callBound = __webpack_require__(163);
+var GetIntrinsic = __webpack_require__(154);
+var callBound = __webpack_require__(164);
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var IsArray = __webpack_require__(164);
+var IsArray = __webpack_require__(165);
 
 var $apply = GetIntrinsic('%Reflect.apply%', true) || callBound('%Function.prototype.apply%');
 
@@ -33774,15 +33770,15 @@ module.exports = function Call(F, V) {
 
 
 /***/ }),
-/* 163 */
+/* 164 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
+var GetIntrinsic = __webpack_require__(154);
 
-var callBind = __webpack_require__(150);
+var callBind = __webpack_require__(151);
 
 var $indexOf = callBind(GetIntrinsic('String.prototype.indexOf'));
 
@@ -33796,18 +33792,18 @@ module.exports = function callBoundIntrinsic(name, allowMissing) {
 
 
 /***/ }),
-/* 164 */
+/* 165 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
+var GetIntrinsic = __webpack_require__(154);
 
 var $Array = GetIntrinsic('%Array%');
 
 // eslint-disable-next-line global-require
-var toStr = !$Array.isArray && __webpack_require__(163)('Object.prototype.toString');
+var toStr = !$Array.isArray && __webpack_require__(164)('Object.prototype.toString');
 
 // https://ecma-international.org/ecma-262/6.0/#sec-isarray
 
@@ -33817,19 +33813,19 @@ module.exports = $Array.isArray || function IsArray(argument) {
 
 
 /***/ }),
-/* 165 */
+/* 166 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
+var GetIntrinsic = __webpack_require__(154);
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var GetV = __webpack_require__(166);
-var IsCallable = __webpack_require__(171);
-var IsPropertyKey = __webpack_require__(167);
+var GetV = __webpack_require__(167);
+var IsCallable = __webpack_require__(172);
+var IsPropertyKey = __webpack_require__(168);
 
 /**
  * 7.3.9 - https://ecma-international.org/ecma-262/6.0/#sec-getmethod
@@ -33866,18 +33862,18 @@ module.exports = function GetMethod(O, P) {
 
 
 /***/ }),
-/* 166 */
+/* 167 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
+var GetIntrinsic = __webpack_require__(154);
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var IsPropertyKey = __webpack_require__(167);
-var ToObject = __webpack_require__(168);
+var IsPropertyKey = __webpack_require__(168);
+var ToObject = __webpack_require__(169);
 
 /**
  * 7.3.2 GetV (V, P)
@@ -33902,7 +33898,7 @@ module.exports = function GetV(V, P) {
 
 
 /***/ }),
-/* 167 */
+/* 168 */
 /***/ ((module) => {
 
 "use strict";
@@ -33916,17 +33912,17 @@ module.exports = function IsPropertyKey(argument) {
 
 
 /***/ }),
-/* 168 */
+/* 169 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
+var GetIntrinsic = __webpack_require__(154);
 
 var $Object = GetIntrinsic('%Object%');
 
-var RequireObjectCoercible = __webpack_require__(169);
+var RequireObjectCoercible = __webpack_require__(170);
 
 // https://ecma-international.org/ecma-262/6.0/#sec-toobject
 
@@ -33937,23 +33933,23 @@ module.exports = function ToObject(value) {
 
 
 /***/ }),
-/* 169 */
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-
-
-module.exports = __webpack_require__(170);
-
-
-/***/ }),
 /* 170 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
+module.exports = __webpack_require__(171);
+
+
+/***/ }),
+/* 171 */
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+var GetIntrinsic = __webpack_require__(154);
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
@@ -33968,7 +33964,7 @@ module.exports = function CheckObjectCoercible(value, optMessage) {
 
 
 /***/ }),
-/* 171 */
+/* 172 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -33976,11 +33972,11 @@ module.exports = function CheckObjectCoercible(value, optMessage) {
 
 // http://262.ecma-international.org/5.1/#sec-9.11
 
-module.exports = __webpack_require__(172);
+module.exports = __webpack_require__(173);
 
 
 /***/ }),
-/* 172 */
+/* 173 */
 /***/ ((module) => {
 
 "use strict";
@@ -34061,19 +34057,19 @@ module.exports = reflectApply
 
 
 /***/ }),
-/* 173 */
+/* 174 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
+var GetIntrinsic = __webpack_require__(154);
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var callBound = __webpack_require__(163);
-var regexTester = __webpack_require__(174);
-var every = __webpack_require__(175);
+var callBound = __webpack_require__(164);
+var regexTester = __webpack_require__(175);
+var every = __webpack_require__(176);
 
 var $charAt = callBound('String.prototype.charAt');
 var $strSlice = callBound('String.prototype.slice');
@@ -34082,14 +34078,14 @@ var $parseInt = parseInt;
 
 var isDigit = regexTester(/^[0-9]$/);
 
-var inspect = __webpack_require__(176);
+var inspect = __webpack_require__(177);
 
-var Get = __webpack_require__(178);
-var IsArray = __webpack_require__(164);
-var IsInteger = __webpack_require__(181);
-var ToObject = __webpack_require__(168);
-var ToString = __webpack_require__(186);
-var Type = __webpack_require__(179);
+var Get = __webpack_require__(179);
+var IsArray = __webpack_require__(165);
+var IsInteger = __webpack_require__(182);
+var ToObject = __webpack_require__(169);
+var ToString = __webpack_require__(187);
+var Type = __webpack_require__(180);
 
 var canDistinguishSparseFromUndefined = 0 in [undefined]; // IE 6 - 8 have a bug where this returns false
 
@@ -34196,17 +34192,17 @@ module.exports = function GetSubstitution(matched, str, position, captures, name
 
 
 /***/ }),
-/* 174 */
+/* 175 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
+var GetIntrinsic = __webpack_require__(154);
 
 var $test = GetIntrinsic('RegExp.prototype.test');
 
-var callBind = __webpack_require__(150);
+var callBind = __webpack_require__(151);
 
 module.exports = function regexTester(regex) {
 	return callBind($test, regex);
@@ -34214,7 +34210,7 @@ module.exports = function regexTester(regex) {
 
 
 /***/ }),
-/* 175 */
+/* 176 */
 /***/ ((module) => {
 
 "use strict";
@@ -34231,7 +34227,7 @@ module.exports = function every(array, predicate) {
 
 
 /***/ }),
-/* 176 */
+/* 177 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 var hasMap = typeof Map === 'function' && Map.prototype;
@@ -34266,7 +34262,7 @@ var gPO = (typeof Reflect === 'function' ? Reflect.getPrototypeOf : Object.getPr
         : null
 );
 
-var inspectCustom = __webpack_require__(177).custom;
+var inspectCustom = __webpack_require__(178).custom;
 var inspectSymbol = inspectCustom && isSymbol(inspectCustom) ? inspectCustom : null;
 var toStringTag = typeof Symbol === 'function' && typeof Symbol.toStringTag !== 'undefined' ? Symbol.toStringTag : null;
 
@@ -34705,27 +34701,27 @@ function arrObjKeys(obj, inspect) {
 
 
 /***/ }),
-/* 177 */
+/* 178 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 module.exports = __webpack_require__(39).inspect;
 
 
 /***/ }),
-/* 178 */
+/* 179 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
+var GetIntrinsic = __webpack_require__(154);
 
 var $TypeError = GetIntrinsic('%TypeError%');
 
-var inspect = __webpack_require__(176);
+var inspect = __webpack_require__(177);
 
-var IsPropertyKey = __webpack_require__(167);
-var Type = __webpack_require__(179);
+var IsPropertyKey = __webpack_require__(168);
+var Type = __webpack_require__(180);
 
 /**
  * 7.3.1 Get (O, P) - https://ecma-international.org/ecma-262/6.0/#sec-get-o-p
@@ -34749,13 +34745,13 @@ module.exports = function Get(O, P) {
 
 
 /***/ }),
-/* 179 */
+/* 180 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var ES5Type = __webpack_require__(180);
+var ES5Type = __webpack_require__(181);
 
 // https://262.ecma-international.org/11.0/#sec-ecmascript-data-types-and-values
 
@@ -34771,7 +34767,7 @@ module.exports = function Type(x) {
 
 
 /***/ }),
-/* 180 */
+/* 181 */
 /***/ ((module) => {
 
 "use strict";
@@ -34802,17 +34798,17 @@ module.exports = function Type(x) {
 
 
 /***/ }),
-/* 181 */
+/* 182 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var abs = __webpack_require__(182);
-var floor = __webpack_require__(183);
+var abs = __webpack_require__(183);
+var floor = __webpack_require__(184);
 
-var $isNaN = __webpack_require__(184);
-var $isFinite = __webpack_require__(185);
+var $isNaN = __webpack_require__(185);
+var $isFinite = __webpack_require__(186);
 
 // https://ecma-international.org/ecma-262/6.0/#sec-isinteger
 
@@ -34826,13 +34822,13 @@ module.exports = function IsInteger(argument) {
 
 
 /***/ }),
-/* 182 */
+/* 183 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
+var GetIntrinsic = __webpack_require__(154);
 
 var $abs = GetIntrinsic('%Math.abs%');
 
@@ -34844,7 +34840,7 @@ module.exports = function abs(x) {
 
 
 /***/ }),
-/* 183 */
+/* 184 */
 /***/ ((module) => {
 
 "use strict";
@@ -34862,7 +34858,7 @@ module.exports = function floor(x) {
 
 
 /***/ }),
-/* 184 */
+/* 185 */
 /***/ ((module) => {
 
 "use strict";
@@ -34874,7 +34870,7 @@ module.exports = Number.isNaN || function isNaN(a) {
 
 
 /***/ }),
-/* 185 */
+/* 186 */
 /***/ ((module) => {
 
 "use strict";
@@ -34886,13 +34882,13 @@ module.exports = Number.isFinite || function (x) { return typeof x === 'number' 
 
 
 /***/ }),
-/* 186 */
+/* 187 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var GetIntrinsic = __webpack_require__(153);
+var GetIntrinsic = __webpack_require__(154);
 
 var $String = GetIntrinsic('%String%');
 var $TypeError = GetIntrinsic('%TypeError%');
@@ -34908,14 +34904,14 @@ module.exports = function ToString(argument) {
 
 
 /***/ }),
-/* 187 */
+/* 188 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var callBound = __webpack_require__(163);
-var hasSymbols = __webpack_require__(155)();
+var callBound = __webpack_require__(164);
+var hasSymbols = __webpack_require__(156)();
 var hasToStringTag = hasSymbols && !!Symbol.toStringTag;
 var has;
 var $exec;
@@ -34974,13 +34970,13 @@ module.exports = hasToStringTag
 
 
 /***/ }),
-/* 188 */
+/* 189 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var implementation = __webpack_require__(161);
+var implementation = __webpack_require__(162);
 
 module.exports = function getPolyfill() {
 	return String.prototype.replaceAll || implementation;
@@ -34988,14 +34984,14 @@ module.exports = function getPolyfill() {
 
 
 /***/ }),
-/* 189 */
+/* 190 */
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
 
 
-var define = __webpack_require__(157);
-var getPolyfill = __webpack_require__(188);
+var define = __webpack_require__(158);
+var getPolyfill = __webpack_require__(189);
 
 module.exports = function shimReplaceAll() {
 	var polyfill = getPolyfill();

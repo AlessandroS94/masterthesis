@@ -6,6 +6,7 @@
 import * as fse from "fs-extra";
 import * as vscode from "vscode";
 import { ElementNode, getNodesByTag, XmlTagName } from "./lexerUtils";
+import {showQuickPickDependencyUI } from '../ui/showQuickPickDependencyUI'
 import { getArtifacts, IArtifactMetadata } from "../service/artifactService";
 //import { selectProjectIfNecessary } from "../utils/uiUtils";
 
@@ -15,50 +16,15 @@ export async function addDependencyHandler(options: any, dependencies: any[]): P
         // for nodes from Maven explorer
         pomPath = options.filePath;
     }
-    //else  {
-    // for "Maven dependencies" nodes from Project Manager
-    //pomPath =  path.join("./", "pom.xml");
-    //console.log(pomPath);
-    // Display a message box to the user
-    //} 
 
     if (!options && !options.projectBasePath) {
-        // select a project(pomfile)
-        /* const selectedProject: MavenProject | undefined = await selectProjectIfNecessary();
-        if (!selectedProject) {
-            return;
-        }
-        pomPath = selectedProject.pomPath; */
-        // Display a message box to the user
         vscode.window.showInformationMessage('POM not found!');
         return;
     }
-
-    /* if (!await fse.pathExists(pomPath)) {
-        throw  console.log("Specified POM file does not exist on file system.");
-    } */
-
-    /* const keywordString: string | undefined = await vscode.window.showInputBox({
-        ignoreFocusOut: true,
-        prompt: "Input keywords to search artifacts from Maven Central Repository.",
-        placeHolder: "e.g. spring azure storage",
-        validateInput: (text: string) => {
-            if (text.trim().length < 3) {
-                return "Keywords are too short.";
-            }
-            return undefined;
-        }
-    });
-    if (!keywordString) {
-        return;
-    } */
     
     for (const dependency of dependencies) {
         vscode.window.showInformationMessage('' + dependency);
-        const selectedDoc= await vscode.window.showQuickPick<vscode.QuickPickItem & { value: IArtifactMetadata }>(
-            getArtifacts(dependency.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({ value: artifact, label: `$(package) ${artifact.a}`, description: artifact.g }))),
-            { placeHolder: "Select a dependency ..." }
-        ).then(selected => selected ? selected.value : undefined);
+        const selectedDoc = await showQuickPickDependencyUI(dependency);
         if (!selectedDoc) {
             continue;
         }

@@ -10,16 +10,13 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:recommending.start",
+    
+    "onCommand:recommending.getUrlRecommend",
     "onCommand:recommending.gettingPom"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
-      {
-        "command": "recommending.start",
-        "title": "Raccomending start"
-      },
       {
         "command": "recommending.gettingPom",
         "title": "Getting recommend dependencies"
