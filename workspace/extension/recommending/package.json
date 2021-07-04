@@ -10,7 +10,7 @@
     "Other"
   ],
   "activationEvents": [
-    
+    "onLanguage:java",
     "onCommand:recommending.getUrlRecommend",
     "onCommand:recommending.gettingPom"
   ],

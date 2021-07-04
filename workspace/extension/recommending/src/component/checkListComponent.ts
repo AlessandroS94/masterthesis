@@ -45,8 +45,29 @@ export function getWebviewContent(libRac: any[]) {
       </div>
     </div>
   </div>
-  
-  
+  <hr>
+  <div class="d-grid gap-2">
+    <button class="btn btn-primary" id='action' type="button"> COMPLETE ADDING </button>
+  </div>
+  <hr>
+  <br>
+  <script>
+
+    const button = document.getElementById('action');
+    button.addEventListener("click", () => { act() });
+    function act() {
+      const vscode = acquireVsCodeApi();
+      let x = document.getElementsByName("lib");
+      let res = [];
+      x.forEach(element => {
+        if (element.checked) { res.push(element.value); }
+      });
+      vscode.postMessage({
+        command: 'send',
+        text: res
+      });
+    }
+  </script>
   <!-- Option 1: Bootstrap Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4"
@@ -62,7 +83,7 @@ function deserializerRac(libRac: any):any{
   let result = '';
   libRac.forEach((element: any) => {
     const posttag='&nbsp;&nbsp;'+
-    '<div class="form-check">'+
+    '<div class="form-check"><input class="form-check-input" type="checkbox" name=lib value="'+element+'" id="flexCheckChecked"'+
     '<label class="form-check-label" for="flexCheckChecked">'+element+
     '</label></div>';
     result = result + posttag;

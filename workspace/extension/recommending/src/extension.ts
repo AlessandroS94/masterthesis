@@ -4,11 +4,13 @@
 import * as vscode from 'vscode';
 import {callSinglePom} from './service/recommendService';
 import {multipleDependenciesFinder} from './utils/multipleDependenciesFinder';
+import {reccomendCheckUI} from './ui/recomendCheckUI';
 import {reccomendListUI} from './ui/recomendListUI';
 import {Lib} from './model/lib';
 // import { callRecommendUrlService } from './service/recommendUrlService';
 import {PortionCode} from './model/portionCode';
 import {urlListUI} from './ui/urlListUI';
+import { showMessage } from './ui/showMessage';
 import { callRecommendUrlService } from './service/recommendUrlService';
 import { replace,ReplaceFunction } from 'lodash';
 // this method is called when your extension is activated
@@ -19,6 +21,10 @@ export async function activate(context: vscode.ExtensionContext) {
     //Start the extension
     console.log('"Recommending" is now active!');
 
+
+    //Activation entry
+    showMessage("For access to all command use shortcut cmd+shift+P or ctrl+P and the menu");
+    procedureRecommendList(context);
     /********************************************************************************************************************************
      *********************************************************************************************************************************
      *                                           START URL RECOMMEND
@@ -67,13 +73,48 @@ export function deactivate() {
 
 /********************************************************************************************************************************
  *********************************************************************************************************************************
- *                                           START POM RECOMMEND
+ *                                           START POM RECOMMEND CHECK
  *********************************************************************************************************************************
  *********************************************************************************************************************************/
 
 // This function find the pom on the VSCode Workspace
 // and parse the pom
 function procedureRecommend(context: vscode.ExtensionContext) {
+    // create the object of the parsed POM
+    const libPom = new Lib(multipleDependenciesFinder());
+
+    // Recive and view the racommend data
+    let getRecommend = async (libPom: any) => {
+        // Data of the racommend call
+        try {
+            let raccomand = await callSinglePom(libPom);
+            // @ts-ignore
+            const libRac = raccomand?.data.score;
+            // open the page to select the recommend lib
+            reccomendCheckUI(libRac, context);
+        } catch (error) {
+            vscode.window.showInformationMessage('Connection Error');
+        }
+    };
+    //storageManager.setValue('recomend_lib',[]);
+    getRecommend(libPom);
+}
+
+/********************************************************************************************************************************
+ *********************************************************************************************************************************
+ *                                           FININSH POM RECOMMEND CHECK
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
+
+/********************************************************************************************************************************
+ *********************************************************************************************************************************
+ *                                           START POM RECOMMEND LIST
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
+
+// This function find the pom on the VSCode Workspace
+// and parse the pom
+function procedureRecommendList(context: vscode.ExtensionContext) {
     // create the object of the parsed POM
     const libPom = new Lib(multipleDependenciesFinder());
 
@@ -115,11 +156,16 @@ async function procedureUrlRecommend() {
         const portionCode = new PortionCode(text);
         let getUrlRecommend = async (portionCode: any) => {
             // Data of the racommend call
+            try {
             let raccomand = await callRecommendUrlService(portionCode);
-            console.log(raccomand);
+            //console.log(raccomand);
             const urlRecommend = raccomand?.data.recommendationItems;
-            console.log(urlRecommend);
+            //console.log(urlRecommend);
             urlListUI(urlRecommend);
+            }
+            catch (error) {
+                vscode.window.showInformationMessage('Connection Error');
+            }
         }; 
         //storageManager.setValue('recomend_lib',[]);
         getUrlRecommend(portionCode);
