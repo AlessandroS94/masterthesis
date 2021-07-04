@@ -5,6 +5,7 @@
 *********************************************************************************************************************************/
 import * as fse from "fs-extra";
 import * as vscode from "vscode";
+import { window } from "vscode";
 import { ElementNode, getNodesByTag, XmlTagName } from "./lexerUtils";
 import {showQuickPickDependencyUI } from '../ui/showQuickPickDependencyUI'
 import { getArtifacts, IArtifactMetadata } from "../service/artifactService";
@@ -23,7 +24,7 @@ export async function addDependencyHandler(options: any, dependencies: any[]): P
     }
     
     for (const dependency of dependencies) {
-        vscode.window.showInformationMessage('' + dependency);
+        //vscode.window.showInformationMessage('' + dependency);
         const selectedDoc = await showQuickPickDependencyUI(dependency);
         if (!selectedDoc) {
             continue;

@@ -9,7 +9,7 @@ import axios from "axios";
 
 export async function callSinglePom(obj: any) {
     // URL to connect for POM recommend
-    const URL_BASIC_RECCOMEND: string = "http://192.168.1.105:5000/recommend";
+    const URL_BASIC_RECCOMEND: string = "http://192.168.1.103:5000/recommend";
     // This is optional (use try/catch if you still want)
     // set variables
     return await axios.post(

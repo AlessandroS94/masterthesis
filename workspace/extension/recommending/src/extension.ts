@@ -2,17 +2,17 @@
 // Import the module and reference it with the alias vscode in your code below
 // Import the library for the extension
 import * as vscode from 'vscode';
-import {callSinglePom} from './service/recommendService';
-import {multipleDependenciesFinder} from './utils/multipleDependenciesFinder';
-import {reccomendCheckUI} from './ui/recomendCheckUI';
-import {reccomendListUI} from './ui/recomendListUI';
-import {Lib} from './model/lib';
+import { callSinglePom } from './service/recommendService';
+import { multipleDependenciesFinder } from './utils/multipleDependenciesFinder';
+import { reccomendCheckUI } from './ui/recomendCheckUI';
+import { reccomendListUI } from './ui/recomendListUI';
+import { Lib } from './model/lib';
 // import { callRecommendUrlService } from './service/recommendUrlService';
-import {PortionCode} from './model/portionCode';
-import {urlListUI} from './ui/urlListUI';
+import { PortionCode } from './model/portionCode';
+import { urlListUI } from './ui/urlListUI';
 import { showMessage } from './ui/showMessage';
 import { callRecommendUrlService } from './service/recommendUrlService';
-import { replace,ReplaceFunction } from 'lodash';
+import { forEach, replace, ReplaceFunction } from 'lodash';
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
@@ -31,13 +31,13 @@ export async function activate(context: vscode.ExtensionContext) {
      *********************************************************************************************************************************
      *********************************************************************************************************************************/
 
-        // this code runs whenever your click 'Create Gist' from the context menu in your browser.
+    // this code runs whenever your click 'Create Gist' from the context menu in your browser.
     let urlRecommend = vscode.commands.registerCommand(
         'recommending.getUrlRecommend',
         () => {
             procedureUrlRecommend();
         }
-        );
+    );
     //Subscribe the command
     context.subscriptions.push(urlRecommend);
     /********************************************************************************************************************************
@@ -53,10 +53,10 @@ export async function activate(context: vscode.ExtensionContext) {
      *********************************************************************************************************************************
      *********************************************************************************************************************************/
 
-        // This command activate the raccomand system for more pom
+    // This command activate the raccomand system for more pom
     let pomGetter = vscode.commands.registerCommand('recommending.gettingPom', () => {
-            procedureRecommend(context);
-        });
+        procedureRecommend(context);
+    });
     //Subscribe the command
     context.subscriptions.push(pomGetter);
     /********************************************************************************************************************************
@@ -127,6 +127,7 @@ function procedureRecommendList(context: vscode.ExtensionContext) {
             const libRac = raccomand?.data.score;
             // open the page to select the recommend lib
             reccomendListUI(libRac, context);
+
         } catch (error) {
             vscode.window.showInformationMessage('Connection Error');
         }
@@ -152,27 +153,27 @@ async function procedureUrlRecommend() {
     const replaceAll = require('string.prototype.replaceall');
     if (editor) {
         editor.options.insertSpaces;
-        const text = String(editor.document.getText(editor.selection));        
+        const text = String(editor.document.getText(editor.selection));
         const portionCode = new PortionCode(text);
         let getUrlRecommend = async (portionCode: any) => {
             // Data of the racommend call
             try {
-            let raccomand = await callRecommendUrlService(portionCode);
-            //console.log(raccomand);
-            const urlRecommend = raccomand?.data.recommendationItems;
-            //console.log(urlRecommend);
-            urlListUI(urlRecommend);
+                let raccomand = await callRecommendUrlService(portionCode);
+                //console.log(raccomand);
+                const urlRecommend = raccomand?.data.recommendationItems;
+                //console.log(urlRecommend);
+                urlListUI(urlRecommend);
             }
             catch (error) {
                 vscode.window.showInformationMessage('Connection Error');
             }
-        }; 
+        };
         //storageManager.setValue('recomend_lib',[]);
         getUrlRecommend(portionCode);
     } else {
         vscode.window.showInformationMessage('You did not select anything');
     }
-    
+
 }
 
 /********************************************************************************************************************************

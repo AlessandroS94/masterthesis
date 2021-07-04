@@ -217,7 +217,7 @@ const axios_1 = __webpack_require__(3);
 function callSinglePom(obj) {
     return __awaiter(this, void 0, void 0, function* () {
         // URL to connect for POM recommend
-        const URL_BASIC_RECCOMEND = "http://192.168.1.105:5000/recommend";
+        const URL_BASIC_RECCOMEND = "http://192.168.1.103:5000/recommend";
         // This is optional (use try/catch if you still want)
         // set variables
         return yield axios_1.default.post(URL_BASIC_RECCOMEND, obj).catch((e) => console.log(e));
@@ -11274,7 +11274,7 @@ function addDependencyHandler(options, dependencies) {
             return;
         }
         for (const dependency of dependencies) {
-            vscode.window.showInformationMessage('' + dependency);
+            //vscode.window.showInformationMessage('' + dependency);
             const selectedDoc = yield showQuickPickDependencyUI_1.showQuickPickDependencyUI(dependency);
             if (!selectedDoc) {
                 continue;
@@ -15299,15 +15299,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.showQuickPickDependencyUI = void 0;
 // @ts-ignore
-const vscode_1 = __webpack_require__(1);
+const vscode = __webpack_require__(1);
 const artifactService_1 = __webpack_require__(143);
 function showQuickPickDependencyUI(dependency) {
     return __awaiter(this, void 0, void 0, function* () {
-        const selectedDoc = yield vscode_1.default.window.showQuickPick(artifactService_1.getArtifacts(dependency.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({
+        let selectedDoc;
+        selectedDoc = vscode.window.showQuickPick(artifactService_1.getArtifacts(dependency.trim().split(/[-,. :]/)).then(artifacts => artifacts.map(artifact => ({
             value: artifact,
             label: `$(package) ${artifact.a}`,
             description: artifact.g
-        }))), { placeHolder: "Select a dependency ..." }).then((selected) => {
+        }))), { placeHolder: "Select a dependency ..." }).then(selected => {
             return selected ? selected.value : undefined;
         });
         return selectedDoc;
