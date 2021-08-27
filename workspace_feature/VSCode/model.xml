@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<featureModel>
+	<properties>
+		<graphics key="legendautolayout" value="true"/>
+		<graphics key="showshortnames" value="false"/>
+		<graphics key="layout" value="vertical"/>
+		<graphics key="showcollapsedconstraints" value="true"/>
+		<graphics key="legendhidden" value="false"/>
+		<graphics key="layoutalgorithm" value="4"/>
+	</properties>
+	<struct>
+		<and abstract="true" mandatory="true" name="VSCodeExtensionSpecification">
+			<graphics key="collapsed" value="false"/>
+			<or name="Recommend">
+				<and name="Proactive">
+					<graphics key="collapsed" value="false"/>
+					<feature name="Dashboard">
+						<graphics key="collapsed" value="false"/>
+					</feature>
+					<feature name="Popup"/>
+				</and>
+				<and name="Reactive">
+					<feature name="Transformative">
+						<graphics key="collapsed" value="false"/>
+					</feature>
+					<feature name="Visualization">
+						<graphics key="collapsed" value="false"/>
+					</feature>
+				</and>
+			</or>
+			<and name="extension">
+				<graphics key="collapsed" value="false"/>
+				<and name="UI">
+					<graphics key="collapsed" value="false"/>
+					<feature name="RecommendCheckUI"/>
+					<feature name="ShowMessageUI"/>
+					<feature name="RecommendCheckListUI"/>
+					<feature name="UrlListUi"/>
+					<feature name="ShowQuickPickDependencyUI"/>
+				</and>
+				<and name="Service">
+					<graphics key="collapsed" value="false"/>
+					<feature name="RecommendService"/>
+					<feature name="RecommendUrlService"/>
+				</and>
+				<and name="Model">
+					<graphics key="collapsed" value="false"/>
+					<feature name="Library"/>
+					<feature name="PortionCode"/>
+				</and>
+				<and name="Component">
+					<graphics key="collapsed" value="false"/>
+					<feature name="ListUrlComponent"/>
+					<feature name="ListComponent"/>
+					<feature name="CheckListComponent"/>
+				</and>
+			</and>
+		</and>
+	</struct>
+	<constraints>
+		<rule>
+			<imp>
+				<var>Reactive</var>
+				<not>
+					<var>Proactive</var>
+				</not>
+			</imp>
+		</rule>
+		<rule>
+			<imp>
+				<var>Dashboard</var>
+				<conj>
+					<var>RecommendService</var>
+					<conj>
+						<var>RecommendCheckListUI</var>
+						<conj>
+							<var>Library</var>
+							<var>ListComponent</var>
+						</conj>
+					</conj>
+				</conj>
+			</imp>
+		</rule>
+		<rule>
+			<imp>
+				<var>Popup</var>
+				<var>ShowMessageUI</var>
+			</imp>
+		</rule>
+		<rule>
+			<imp>
+				<var>Transformative</var>
+				<conj>
+					<var>RecommendCheckUI</var>
+					<conj>
+						<var>RecommendService</var>
+						<conj>
+							<var>Library</var>
+							<var>CheckListComponent</var>
+						</conj>
+					</conj>
+				</conj>
+			</imp>
+		</rule>
+		<rule>
+			<imp>
+				<var>Visualization</var>
+				<conj>
+					<var>UrlListUi</var>
+					<conj>
+						<var>RecommendUrlService</var>
+						<conj>
+							<var>PortionCode</var>
+							<var>ListUrlComponent</var>
+						</conj>
+					</conj>
+				</conj>
+			</imp>
+		</rule>
+	</constraints>
+</featureModel>

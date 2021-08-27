@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration>
+	<feature automatic="selected" name="VSCodeExtensionSpecification"/>
+	<feature automatic="selected" manual="selected" name="Recommend"/>
+	<feature manual="selected" name="Proactive"/>
+	<feature name="Dashboard"/>
+	<feature name="Popup"/>
+	<feature automatic="unselected" name="Reactive"/>
+	<feature automatic="unselected" name="Transformative"/>
+	<feature automatic="unselected" name="Visualization"/>
+	<feature manual="selected" name="extension"/>
+	<feature name="UI"/>
+	<feature name="RecommendCheckUI"/>
+	<feature name="ShowMessageUI"/>
+	<feature name="RecommendCheckListUI"/>
+	<feature name="UrlListUi"/>
+	<feature name="ShowQuickPickDependencyUI"/>
+	<feature name="Service"/>
+	<feature name="RecommendService"/>
+	<feature name="RecommendUrlService"/>
+	<feature name="Model"/>
+	<feature name="Library"/>
+	<feature name="PortionCode"/>
+	<feature name="Component"/>
+	<feature name="ListUrlComponent"/>
+	<feature name="ListComponent"/>
+	<feature name="CheckListComponent"/>
+</configuration>
