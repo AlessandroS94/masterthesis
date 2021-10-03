@@ -1,0 +1,21 @@
+[comment encoding = UTF-8 /]
+[module generateRecommendUrlService('http://model.org/presentationLayer')]
+
+
+[template public generatRecommendUrlService(aPresentationtionLayer : PresentationLayerRoot)]
+[file ('src/service/recommendUrlService.ts', false, 'UTF-8')]
+'use strict';
+import axios from "axios";
+
+
+export async function callSinglePom(obj: any) {
+    // URL to connect for POM recommend
+    const URL_BASIC_RECCOMEND: string ="http://178.238.238.209:8080/api/recommendation/recommended_API_documentation";
+    // This is optional (use try/catch if you still want)
+    // set variables
+    return await axios.post(
+        URL_BASIC_RECCOMEND, obj
+    ).catch((e) => console.log(e));
+}
+[/file]
+[/template]

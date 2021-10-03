@@ -1,0 +1,208 @@
+[comment encoding = UTF-8 /]
+[module generateExtension ('http://model.org/presentationLayer')]
+
+
+[template public generateExtension(aPresentationLayerRoot : PresentationLayerRoot)]
+[file ('src/extension.ts', false, 'UTF-8')]
+// The module 'vscode' contains the VS Code extensibility API
+// Import the module and reference it with the alias vscode in your code below
+// Import the library for the extension
+import * as vscode from 'vscode';
+[if (aPresentationLayerRoot.visualstudiocoderef.uiref.isTrasformative)]
+	import { callSinglePom } from './service/recommendService';
+	import { multipleDependenciesFinder } from './utils/multipleDependenciesFinder';
+	import { reccomendCheckUI } from './ui/recomendCheckUI';
+	import { Lib } from './model/lib';
+[/if]
+[if (aPresentationLayerRoot.visualstudiocoderef.uiref.isDashoboard)]
+	import { reccomendListUI } from './ui/recomendListUI';
+    import { urlListUI } from './ui/urlListUI';
+[/if]
+[if (aPresentationLayerRoot.visualstudiocoderef.isVIsualization)]
+import { PortionCode } from './model/portionCode';
+[/if]
+[if (aPresentationLayerRoot.visualstudiocoderef.isPopup)]
+import { showMessage } from './ui/showMessage';
+[/if]
+[if(aPresentationLayerRoot.visualstudiocoderef.isVIsualization)]
+import { callRecommendUrlService } from './service/recommendUrlService';
+[/if]
+import { forEach, replace, ReplaceFunction } from 'lodash';
+// this method is called when your extension is activated
+// your extension is activated the very first time the command is executed
+export async function activate(context: vscode.ExtensionContext) {
+
+    // This line of code will only be executed once when your extension is activated
+    //Start the extension
+    console.log('"Recommending" is now active!');
+
+
+    //Activation entry
+[if (aPresentationLayerRoot.visualstudiocoderef.isPopup)]
+    showMessage("For access to all command use shortcut cmd+shift+P or ctrl+P and the menu");
+    procedureRecommendList(context);
+[/if]
+[if(aPresentationLayerRoot.visualstudiocoderef.isVIsualization)]
+    /********************************************************************************************************************************
+     *********************************************************************************************************************************
+     *                                           START URL RECOMMEND
+     *********************************************************************************************************************************
+     *********************************************************************************************************************************/
+
+    // this code runs whenever your click 'GetUrl' from the context menu in your browser.
+    let urlRecommend = vscode.commands.registerCommand(
+        'recommending.getUrlRecommend',
+        () => {
+            procedureUrlRecommend();
+        }
+    );
+    //Subscribe the command
+    context.subscriptions.push(urlRecommend);
+    /********************************************************************************************************************************
+     *********************************************************************************************************************************
+     *                                           FINISH URL RECOMMEND
+     *********************************************************************************************************************************
+     *********************************************************************************************************************************/
+[/if]
+
+
+[if (aPresentationLayerRoot.visualstudiocoderef.uiref.isDashoboard)]
+    /********************************************************************************************************************************
+     *********************************************************************************************************************************
+     *                                           START POM RECOMMEND
+     *********************************************************************************************************************************
+     *********************************************************************************************************************************/
+
+    // This command activate the raccomand system for more pom
+    let pomGetter = vscode.commands.registerCommand('recommending.gettingPom', () => {
+        procedureRecommend(context);
+    });
+    //Subscribe the command
+    context.subscriptions.push(pomGetter);
+    /********************************************************************************************************************************
+     *********************************************************************************************************************************
+     *                                           FINISH POM RECOMMEND
+     *********************************************************************************************************************************
+     *********************************************************************************************************************************/
+
+}
+[/if]
+// this method is called when your extension is deactivated
+export function deactivate() {
+}
+[if(aPresentationLayerRoot.visualstudiocoderef.uiref.isTrasformative)]
+/********************************************************************************************************************************
+ *********************************************************************************************************************************
+ *                                           START POM RECOMMEND CHECK
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
+
+// This function find the pom on the VSCode Workspace
+// and parse the pom
+function procedureRecommend(context: vscode.ExtensionContext) {
+    // create the object of the parsed POM
+    const libPom = new Lib(multipleDependenciesFinder());
+
+    // Recive and view the racommend data
+    let getRecommend = async (libPom: any) => {
+        // Data of the racommend call
+        try {
+            let raccomand = await callSinglePom(libPom);
+            // @ts-ignore
+            const libRac = raccomand?.data.score;
+            // open the page to select the recommend lib
+            reccomendCheckUI(libRac, context);
+        } catch (error) {
+            vscode.window.showInformationMessage('Connection Error');
+        }
+    };
+    //storageManager.setValue('recomend_lib',['['/] ]);
+    getRecommend(libPom);
+}
+
+/********************************************************************************************************************************
+ *********************************************************************************************************************************
+ *                                           FININSH POM RECOMMEND CHECK
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
+[/if]
+[if(aPresentationLayerRoot.visualstudiocoderef.uiref.isDashoboard)]
+/********************************************************************************************************************************
+ *********************************************************************************************************************************
+ *                                           START POM RECOMMEND LIST
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
+
+// This function find the pom on the VSCode Workspace
+// and parse the pom
+function procedureRecommendList(context: vscode.ExtensionContext) {
+    // create the object of the parsed POM
+    const libPom = new Lib(multipleDependenciesFinder());
+
+    // Recive and view the racommend data
+    let getRecommend = async (libPom: any) => {
+        // Data of the racommend call
+        try {
+            let raccomand = await callSinglePom(libPom);
+            // @ts-ignore
+            const libRac = raccomand?.data.score;
+            // open the page to select the recommend lib
+            reccomendListUI(libRac, context);
+
+        } catch (error) {
+            vscode.window.showInformationMessage('Connection Error');
+        }
+    };
+    //storageManager.setValue('recomend_lib',['['/] ]);
+    getRecommend(libPom);
+}
+
+/********************************************************************************************************************************
+ *********************************************************************************************************************************
+ *                                           FININSH POM RECOMMEND
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
+[/if]
+[if (aPresentationLayerRoot.visualstudiocoderef.isVIsualization)]
+/********************************************************************************************************************************
+ *********************************************************************************************************************************
+ *                                           START URL RECOMMEND
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
+async function procedureUrlRecommend() {
+    const editor = vscode.window.activeTextEditor;
+    const replaceAll = require('string.prototype.replaceall');
+    if (editor) {
+        editor.options.insertSpaces;
+        const text = String(editor.document.getText(editor.selection));
+        const portionCode = new PortionCode(text);
+        let getUrlRecommend = async (portionCode: any) => {
+            // Data of the racommend call
+            try {
+                let raccomand = await callRecommendUrlService(portionCode);
+                //console.log(raccomand);
+                const urlRecommend = raccomand?.data.recommendationItems;
+                //console.log(urlRecommend);
+                urlListUI(urlRecommend);
+            }
+            catch (error) {
+                vscode.window.showInformationMessage('Connection Error');
+            }
+        };
+        //storageManager.setValue('recomend_lib',['['/] ]);
+        getUrlRecommend(portionCode);
+    } else {
+        vscode.window.showInformationMessage('You did not select anything');
+    }
+
+}
+
+/********************************************************************************************************************************
+ *********************************************************************************************************************************
+ *                                           FINISH URL RECOMMEND
+ *********************************************************************************************************************************
+ *********************************************************************************************************************************/
+[/if]
+
+[/file]
+[/template]

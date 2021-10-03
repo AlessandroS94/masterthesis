@@ -1,0 +1,40 @@
+[comment encoding = UTF-8 /]
+[module generateModel('http://model.org/presentationLayer')]
+
+
+[template public generateModel(aPresentationLayerRoot : PresentationLayerRoot)]
+[file ('src/model/lib.ts', false, 'UTF-8')]
+	export class Lib {
+    public lib: String['['/]] | undefined;
+
+    constructor(lib: String['['/]]) {
+        this.lib = lib;
+    }
+
+    getLib(): any {
+        return this.lib;
+    }
+
+    setLib(lib: String['['/]]) {
+        this.lib = lib;
+    }
+}
+[/file]
+[file ('src/model/portioncode.ts', false,'UTF-8')]
+export class PortionCode {
+    public compilationUnit: String | undefined;
+
+    constructor(compilationUnit: String) {
+        this.compilationUnit = compilationUnit;
+    }
+
+    getLib(): any {
+        return this.compilationUnit;
+    }
+
+    setLib(compilationUnit: String) {
+        this.compilationUnit = compilationUnit;
+    }
+}
+[/file]
+[/template]

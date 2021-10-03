@@ -1,0 +1,23 @@
+[comment encoding = UTF-8 /]
+[module generate('http://model.org/presentationLayer')]
+[import it::univaq::disim::PresentationLayer::acceleo::main::generateExtension /]
+[import it::univaq::disim::PresentationLayer::acceleo::main::generatePackage /]
+[import it::univaq::disim::PresentationLayer::acceleo::main::generateService/]
+[import it::univaq::disim::PresentationLayer::acceleo::main::generateModel /]
+[import it::univaq::disim::PresentationLayer::acceleo::main::generateComponent/]
+[import it::univaq::disim::PresentationLayer::acceleo::main::generateUI/]
+
+[template public generatePackage(aPresentationtionLayer : PresentationLayerRoot)]
+[comment @main/]
+[ generateExtension()/]
+
+[ generatePackageJSON()/]
+
+[ generateService()/]
+
+[ generateModel()/]
+
+[ generateComponent()/]
+
+[ generateUI()/]
+[/template]

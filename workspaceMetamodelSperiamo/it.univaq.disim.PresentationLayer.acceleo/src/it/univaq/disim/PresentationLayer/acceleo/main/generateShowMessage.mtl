@@ -1,0 +1,11 @@
+[comment encoding = UTF-8 /]
+[module generateShowMessage('http://model.org/presentationLayer')]
+
+
+[template public generateShowMessageUI(aPresentationLayerRoot : PresentationLayerRoot)]
+[file ('src/ui/reccomendListUI.ts', false, 'UTF-8')]
+export function showMessage(message:any){
+    vscode.window.showInformationMessage(message);
+  }
+[/file]
+[/template]

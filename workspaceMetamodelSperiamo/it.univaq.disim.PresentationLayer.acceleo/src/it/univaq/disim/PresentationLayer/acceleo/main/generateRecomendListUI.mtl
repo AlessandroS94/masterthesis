@@ -1,0 +1,26 @@
+[comment encoding = UTF-8 /]
+[module generateRecomendListUI('http://model.org/presentationLayer')]
+
+
+[template public generatereccomendListUI(aPresentationLayerRoot : PresentationLayerRoot)]
+[file ('src/ui/reccomendListUI.ts', false, 'UTF-8')]
+import * as vscode from 'vscode';
+import { getWebviewContent } from '../component/listComponent';
+import { addDependencyHandler } from '../utils/pomAddingLibrary';
+
+export function reccomendListUI(libRac: any['['/] ], context: vscode.ExtensionContext){
+  
+  const panel = vscode.window.createWebviewPanel(
+    'Rac',
+    'Racommander',
+    vscode.ViewColumn.One,
+    {
+      enableScripts: true
+    }
+  );
+
+  // And set its HTML content
+  panel.webview.html = getWebviewContent(libRac);
+}
+[/file]
+[/template]

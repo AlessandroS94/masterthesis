@@ -1,0 +1,26 @@
+[comment encoding = UTF-8 /]
+[module generateUrlListUI('http://model.org/presentationLayer')]
+
+
+[template public generateUrlList(aPresentationLayerRoot : PresentationLayerRoot)]
+[file ('src/ui/showMessage.ts', false, 'UTF-8')]
+import * as vscode from 'vscode';
+import { getWebviewContent } from '../component/listUrlComponent';
+
+export function urlListUI(urlList: any){
+  
+  const panel = vscode.window.createWebviewPanel(
+    'Rac',
+    'Racommander URL',
+    vscode.ViewColumn.One,
+    {
+      enableScripts: true
+    }
+  );
+
+  // And set its HTML content
+  panel.webview.html = getWebviewContent(urlList);
+  
+}
+[/file]
+[/template]

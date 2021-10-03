@@ -1,0 +1,14 @@
+[comment encoding = UTF-8 /]
+[module generateService('http://model.org/presentationLayer')]
+[import it::univaq::disim::PresentationLayer::acceleo::main::generateRecommendUrlService/]
+[import it::univaq::disim::PresentationLayer::acceleo::main::generateRecommendService /]
+
+
+[template public generateService(aPresentationLayerRoot : PresentationLayerRoot)]
+[if(aPresentationLayerRoot.visualstudiocoderef.uiref.isTrasformative)]
+	[generateRecommendService()/]
+[/if]
+[if(aPresentationLayerRoot.visualstudiocoderef.isVIsualization)]
+	[generatRecommendUrlService()/]
+[/if]
+[/template]
