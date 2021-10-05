@@ -12,3 +12,15 @@ docs/.DS_Store
 docs/RSSE_Chapter.pdf
 
 docs/main.pdf
+
+eclipse_2021_09/
+
+EclipseModel/
+
+esempi/
+
+featureModel/
+
+workspace_model_esempi/
+
+workspace/extension/recommending/.vscode/settings.json
