@@ -24,3 +24,5 @@ featureModel/
 workspace_model_esempi/
 
 workspace/extension/recommending/.vscode/settings.json
+
+.DS_Store
