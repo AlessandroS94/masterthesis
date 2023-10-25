@@ -1,37 +1,37 @@
 # Masterthesis
 
-Il progetto della tesi magistrale si focalizza sullo sviluppo di un approccio Model-Driven per la realizzazione di un plugin per Visual Studio Code. Questo plugin avrà l'obiettivo di interfacciarsi con un sistema di raccomandazione tramite le sue API, al fine di fornire suggerimenti agli utenti durante lo sviluppo del software. Il progetto esplora la potenzialità della combinazione di tecniche Model-Driven Engineering (MDE) con le moderne piattaforme di sviluppo e i sistemi di raccomandazione.
+The master thesis project focuses on developing a Model-Driven approach for creating a plugin for Visual Studio Code. This plugin aims to interface with a recommender system via its API, in order to provide suggestions to users during software development. The project explores the potential of combining Model-Driven Engineering (MDE) techniques with modern development platforms and recommender systems.
 
-## Tecnologie Utilizzate
+## Technologies Used
 
-Di seguito sono presentate le tecnologie chiave utilizzate nel progetto:
+Below are the key technologies used in the project:
 
 <table>
   <tr>
     <td align="center">
       <img src="img/acceleo.jpg" alt="Acceleo" width="100"/><br>
       <sub><b>Acceleo</b></sub><br>
-      Un generatore di codice modello-driven basato su EMF.
+      A model-driven code generator based on EMF.
     </td>
     <td align="center">
       <img src="img/Emf_logo-4027152007.png" alt="EMF" width="100"/><br>
       <sub><b>Eclipse Modeling Framework (EMF)</b></sub><br>
-      Una piattaforma di modellazione e generazione di codice.
+      A modeling and code generation platform.
     </td>
     <td align="center">
       <img src="img/nodejs.jpg" alt="Node.js" width="100"/><br>
       <sub><b>Node.js</b></sub><br>
-      Un runtime di JavaScript lato server utilizzato per sviluppare il plugin VSCode.
+      A server-side JavaScript runtime used to develop the VSCode plugin.
     </td>
   </tr>
 </table>
 
-## Workflow del Progetto
+## Project Workflow
 
-1. **Analisi dei Requisiti:** Identificazione dei requisiti funzionali e non funzionali del plugin.
-2. **Definizione del Modello:** Creazione di un modello ad alto livello utilizzando EMF.
-3. **Generazione del Codice:** Utilizzo di Acceleo per generare il codice sorgente del plugin.
-4. **Sviluppo del Plugin:** Implementazione delle funzionalità mancanti e integrazione con il recommender system.
-5. **Testing ed Ottimizzazione:** Verifica della funzionalità del plugin e ottimizzazione basata sui feedback degli utenti.
+1. **Requirements Analysis:** Identification of the functional and non-functional requirements of the plugin.
+2. **Model Definition:** Creation of a high-level model using EMF.
+3. **Code Generation:** Use of Acceleo to generate the source code of the plugin.
+4. **Plugin Development:** Implementation of missing functionalities and integration with the recommender system.
+5. **Testing and Optimization:** Verification of the plugin functionality and optimization based on user feedback.
 
-
+For further details, please refer to the complete documentation included in the repository.
